@@ -203,7 +203,7 @@ button { font: inherit; color: inherit; }
 .cmp td small { display: block; color: var(--muted); font-size: .74rem; }
 
 .cmp tbody tr:last-child > * { border-bottom: 0; }
-@media (max-width: 600px) { .cmp tbody th { width: 92px; min-width: 92px; max-width: 92px; padding-left: 8px; padding-right: 6px; font-size: .82rem; } .cmp td { min-width: 124px; } }
+@media (max-width: 600px) { .cmp tbody th { width: 92px; min-width: 92px; max-width: 92px; padding-left: 8px; padding-right: 6px; font-size: .82rem; } .cmp tr.sub th { padding-left: 14px; } .cmp td { min-width: 124px; } }
 .bar .clear + .tog { margin-left: 0; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 22px 18px; }
@@ -331,8 +331,12 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .costparts .amt { font-variant-numeric: tabular-nums; text-align: right; }
 .costparts .vs { grid-column: 2 / -1; margin-top: -2px; color: var(--muted); font-size: .78rem; }
 .costparts .vs.up { color: var(--r-red-ink); } .costparts .vs.down { color: var(--r-green-ink); }
+.costtog { all: unset; cursor: pointer; display: flex; width: fit-content; align-items: center; gap: 4px; margin-top: 4px; color: var(--muted); font-size: .8rem; font-weight: 600; }
+.costtog svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; transition: transform .15s; }
+.costtog[aria-expanded="true"] svg { transform: rotate(180deg); }
+.costtog:hover { color: var(--accent); } .costtog:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
 .costnote { margin: 6px 0 0; color: var(--muted); font-size: .76rem; line-height: 1.35; }
-.cmp tr.sub th { padding-left: 22px; font-weight: 400; color: var(--muted); }
+.cmp tr.sub th { padding-left: 20px; overflow-wrap: anywhere; font-weight: 400; color: var(--muted); }
 .facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
 .big { font: 400 1.6rem/1 var(--display); letter-spacing: .02em; }
 .shop { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: var(--accent-fill);
@@ -774,7 +778,7 @@ document.addEventListener("click", (e) => {
 
 // ---- My Picks compare table ----
 const CMP = [
-  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ...COST_PARTS.map(([k, label]) => [k === "buy" ? label : label + ", 5 years", "_" + k, "money", -1, "sub"]), ["Insurance a year", "Annual insurance $", "money", -1],
+  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ...COST_PARTS.map(([k]) => [{ buy: "Price, tax, fees", fuel: "Fuel, 5 yrs", fix: "Repairs, 5 yrs" }[k], "_" + k, "money", -1, "sub"]), ["Insurance a year", "Annual insurance $", "money", -1],
     ["Fuel a year", "Annual fuel $", "money", -1], ["Repairs a year", "Annual repair cost $", "money", -1], ["Combined MPG", "Combined MPG", "n", 1], ["Est. miles", "Est. miles", "num", -1]]],
   ["Safety", [["Safety level", "Safety level (High/Med/Low)", "level"], ["NHTSA", "NHTSA stars", "nhtsa"], ["IIHS", "IIHS award", "iihs"]]],
   ["Reliability", [["Reliability", "Reliability (High/Med/Low)", "level"], ["CR reliability (0–100)", "CR reliability (0-100)", "cr", 1], ["CR owner satisfaction (0–100)", "CR owner satisfaction (0-100)", "cr", 1]]],
@@ -879,7 +883,8 @@ function costBreak(r) {
       : `<span class="vs ${d > 0 ? "up" : "down"}">${money(Math.abs(d))} ${d > 0 ? "more" : "less"} than the middle of your list</span>`;
     return `<li><span class="sw" style="background:var(--c-${k})"></span><span>${l}</span><span class="amt">${money(r["_" + k])}</span>${vs}</li>`;
   }).join("");
-  return `${bar}<ul class="costparts">${li}</ul>${COST_VIEW === "b" && TYPICAL.n ? `<p class="costnote">The middle of your list is the median of the ${TYPICAL.n} model years you haven't banished.</p>` : ""}`;
+  const open = !!ui.costOpen;
+  return `<button type="button" class="costtog" aria-expanded="${open}"><span>${open ? "Hide breakdown" : "Show breakdown"}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="costbody"${open ? "" : " hidden"}>${bar}<ul class="costparts">${li}</ul>${COST_VIEW === "b" && TYPICAL.n ? `<p class="costnote">The middle of your list is the median of the ${TYPICAL.n} model years you haven't banished.</p>` : ""}</div>`;
 }
 const costTip = (r) => {
   const prem = /premium/.test(r["Gas/Hybrid"] || "");
@@ -972,6 +977,9 @@ addEventListener("resize", () => { if (dlg.open) { markMore(); markTabs(); } });
 dlg.addEventListener("click", (e) => {
   if (e.target === dlg) { dlg.close(); return; }
   if (e.target.closest(".morebtn")) { dlg.scrollBy({ top: dlg.clientHeight * .7, behavior: "smooth" }); return; }
+  const ct = e.target.closest(".costtog");
+  if (ct) { ui.costOpen = !ui.costOpen; saveUi(); ct.nextElementSibling.hidden = !ui.costOpen; ct.setAttribute("aria-expanded", String(ui.costOpen));
+    ct.querySelector("span").textContent = ui.costOpen ? "Hide breakdown" : "Show breakdown"; markMore(); return; }
   const info = e.target.closest(".info");
   if (info) { const t = info.closest("div").querySelector(".tipx"), open = t.hidden; t.hidden = !open; info.setAttribute("aria-expanded", String(open)); markMore(); return; }
   const b = e.target.closest("[data-vi]"); if (!b) return;
