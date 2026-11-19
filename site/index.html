@@ -481,13 +481,17 @@ const CR_MODEL = { mazda3: "3", mazda6: "6" };
 const NHTSA_MODEL = { ilx: "ILX", civic: "CIVIC", accord: "ACCORD", miata: "MX-5", mazda3s: "MAZDA3", mazda3h: "MAZDA3", mazda6: "MAZDA6",
   cooper: "COOPER HARDTOP", coopers: "COOPER S HARDTOP", impreza4: "IMPREZA", impreza5: "IMPREZA", legacy: "LEGACY", yaris: "YARIS",
   corolla10: "COROLLA", corolla11: "COROLLA", prius: "PRIUS", priusc: "PRIUS C", beetle: "BEETLE", jetta: "JETTA", passat: "PASSAT", golf: "GOLF" };
+const CG = { ilx: "d2137", civic: "d586", accord: "d585", miata: "d221", mazda3s: "d214", mazda3h: "d214", mazda6: "d215", cooper: "d436", coopers: "d436",
+  im: "d2319", impreza4: "d375", impreza5: "d375", legacy: "d378", yaris: "d827", corolla10: "d295", corolla11: "d295", prius: "d15", priusc: "d2127",
+  beetle: "d201", jetta: "d200", passat: "d202", golf: "d198" };
 const L = {
   kbb: (c, y) => `https://www.kbb.com/${c.make}/${c.kbbModel}/${y}/`,
   nhtsa: (c, y) => NHTSA_MODEL[c.id] ? `https://www.nhtsa.gov/vehicle/${y}/${c.make.toUpperCase()}/${encodeURIComponent(NHTSA_MODEL[c.id])}` : "",
   iihs: (c, y, r) => { if (!c.iihs) return ""; let s = c.iihs; if (c.make === "subaru" && c.model === "impreza" && r && r["Body style"] === "Hatchback") s = "subaru/impreza-4-door-wagon"; return `https://www.iihs.org/ratings/vehicle/${s}/${y}`; },
   cr: (c, y) => `https://www.consumerreports.org/cars/${c.make}/${CR_MODEL[c.model] || c.model}/${y}/overview/`,
   repairpal: (c) => `https://repairpal.com/reliability/${c.make}/${c.model}`,
-  autotrader: (c, y1, y2) => `https://www.autotrader.com/cars-for-sale/used-cars/${c.make}/${c.model}/san-francisco-ca?startYear=${y1}&endYear=${y2 || y1}&searchRadius=100`,
+  // CarGurus model ids (from its car picker); search within 100 miles of San Francisco
+  cargurus: (c, y1, y2) => `https://www.cargurus.com/search?zip=94103&distance=100&entityId=${CG[c.id]}&startYear=${y1}&endYear=${y2 || y1}`,
   geico: () => "https://www.geico.com/auto-insurance/",
 };
 const a = (href, text) => href ? `<a class="ext" href="${esc(href)}" target="_blank" rel="noopener">${text}</a>` : text;
@@ -836,7 +840,7 @@ const ROW_FIELDS = (c, r) => {
     ["Reliability", badge(r["Reliability (High/Med/Low)"], LEVEL[r["Reliability (High/Med/Low)"]])],
     ["CR reliability (0–100)", a(L.cr(c, y), badge(typeof r["CR reliability (0-100)"] === "number" ? r["CR reliability (0-100)"] : "NA", crCls(r["CR reliability (0-100)"], 20)))],
     ["CR owner satisfaction (0–100)", a(L.cr(c, y), badge(typeof r["CR owner satisfaction (0-100)"] === "number" ? r["CR owner satisfaction (0-100)"] : "NA", crCls(r["CR owner satisfaction (0-100)"], 40)))],
-    ["Number for sale", typeof sale === "number" ? a(L.autotrader(c, y), badge(num(sale) + " · " + saleLevel(sale), saleCls(sale))) : "—"],
+    ["Number for sale", typeof sale === "number" ? a(L.cargurus(c, y), badge(num(sale) + " · " + saleLevel(sale), saleCls(sale))) : "—"],
   ];
 };
 // a third item is an explanation, opened by the (i) button beside the label
@@ -896,7 +900,7 @@ function openDetail(key, vi) {
           `<button type="button" data-vi="${i}" aria-pressed="${i === vi}" class="${matched.has(x) ? "" : "dim"}"><b>${esc(vlabel(x))}</b><small>${money(x["KBB private party $"])}</small></button>`).join("")}</div>` : ""}
         <p class="dfoot" style="margin:0 0 8px">${esc(r.Description)}</p>
         ${dl([...ROW_FIELDS(c, r), ...rowExtra])}
-        <a class="shop ext" href="${esc(L.autotrader(c, r.Year))}" target="_blank" rel="noopener">See ${esc(r.Year + " " + c.title)}s for sale on Autotrader</a>
+        <a class="shop ext" href="${esc(L.cargurus(c, r.Year))}" target="_blank" rel="noopener">See ${esc(r.Year + " " + c.title)}s for sale on CarGurus</a>
       </section>
       <section>
         <h3>The car${rows.length > 1 ? ", every version" : ""}</h3>
@@ -909,7 +913,7 @@ function openDetail(key, vi) {
       <section>
         <h3>Look it up</h3>
         <div class="links">
-          ${y1 !== y2 ? `<a class="ext" href="${esc(L.autotrader(c, y1, y2))}" target="_blank" rel="noopener">Autotrader, ${y1}–${y2}</a>` : ""}
+          ${y1 !== y2 ? `<a class="ext" href="${esc(L.cargurus(c, y1, y2))}" target="_blank" rel="noopener">CarGurus, ${y1}–${y2}</a>` : ""}
           <a class="ext" href="${esc(L.kbb(c, r.Year))}" target="_blank" rel="noopener">Kelley Blue Book</a>
           ${L.nhtsa(c, r.Year) ? `<a class="ext" href="${esc(L.nhtsa(c, r.Year))}" target="_blank" rel="noopener">NHTSA crash tests and recalls</a>` : ""}
           ${L.iihs(c, r.Year, r) ? `<a class="ext" href="${esc(L.iihs(c, r.Year, r))}" target="_blank" rel="noopener">IIHS ratings</a>` : ""}
