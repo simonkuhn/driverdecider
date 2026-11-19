@@ -372,8 +372,9 @@ const yearsOf = (rows) => { const y = [...new Set(rows.map((r) => r.Year))].sort
 
 // ---- saved choices (this browser only) ----
 const KEY = "driverdecider.v1";
-let saved = { hl: [], ban: [] };
-try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.hl) && Array.isArray(s.ban)) saved = s; } catch {}
+// first visit starts with these in My Picks; after that, whatever this browser saved
+let saved = { hl: ["impreza4", "impreza5", "corolla10", "corolla11"], ban: [] }, fresh = true;
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.hl) && Array.isArray(s.ban)) { saved = s; fresh = false; } } catch {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {} };
 const isHl = (id) => saved.hl.includes(id), isBan = (id) => saved.ban.includes(id);
 const modelOf = (key) => String(key).split("@")[0];
@@ -547,7 +548,7 @@ const isPick = (c) => c.rows.some((r) => r["Simon's pick"] === "Yes");
 function section(id, title, items, mode) {
   if (!items.length) return "";
   const shut = !!closed[id];
-  const note = id === "rest" && !saved.hl.length && !saved.ban.length
+  const note = id === "rest" && fresh
     ? '<p class="hint">Tap the bookmark to add a car to My Picks at the top. Tap the crossed-out eye to banish it from your list. A gold ★ marks Simon\'s picks.</p>' : "";
   return `<section class="sect ${id}${shut ? " closed" : ""}" aria-labelledby="h-${id}">
     <div class="bar"><h2 id="h-${id}">${SECT_ICON[id] || ""}${esc(title)}</h2><span class="n">${items.length}</span>
