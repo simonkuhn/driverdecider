@@ -13,15 +13,16 @@
 /* Layout: a wordmark over a lane-line rule, a sticky strip of filter chips, then a wall of
    movie-poster cards (two across on an iPhone, three or four on a desktop) in sections with colored bars:
    My Picks, Simon's picks, the rest, Banished.
-   Color: cool asphalt-tinted paper + ink, one road-sign green accent, gold for Simon's picks. */
+   Color: cool asphalt-tinted paper + ink, one accent: lane-line yellow (amber where it is text on light paper). */
 :root {
   --bg: #f2f3f1;
   --surface: #ffffff;
   --ink: #171a1c;
   --muted: #5b6268;
   --line: #dcdfdc;
-  --accent: #17644a;
-  --accent-ink: #ffffff;
+  --accent: #8f6300;
+  --accent-fill: #f5c542;
+  --accent-ink: #241a00;
   --road: #2a2e31;
   --gold: #b07a00;
   --gold-bg: #f5c542;
@@ -42,7 +43,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
-    --road: #33383c; --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+    --road: #33383c; --accent: #f5c542; --accent-fill: #f5c542; --accent-ink: #241a00; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
     --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
     --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
     --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -52,7 +53,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
-  --road: #33383c; --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+  --road: #33383c; --accent: #f5c542; --accent-fill: #f5c542; --accent-ink: #241a00; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
   --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
   --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
   --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -123,7 +124,7 @@ button { font: inherit; color: inherit; }
   border: 1px solid var(--muted); border-radius: 8px; padding: 0 12px; min-height: 34px; cursor: pointer; }
 .sect.hl .bar { border-left-color: var(--gold-bg); background: color-mix(in srgb, var(--gold-bg) 18%, var(--surface)); }
 .sect.hl .bar h2 svg { color: var(--gold); }
-.sect.picks .bar { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.sect.picks .bar { border-left-color: var(--accent-fill); }
 .sect.gone .bar { border-left-color: var(--muted); }
 .sect.gone .bar h2 svg { color: var(--muted); }
 .sect.closed .grid, .sect.closed .hint { display: none; }
@@ -230,7 +231,7 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .facts dd a { text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
 .facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
 .big { font: 400 1.6rem/1 var(--display); letter-spacing: .02em; }
-.shop { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: var(--accent);
+.shop { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: var(--accent-fill);
   color: var(--accent-ink); font-weight: 700; text-decoration: none; padding: 10px 16px; text-align: center; margin-top: 12px; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
 .links a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line);
@@ -248,9 +249,9 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .jump button { display: grid; text-align: left; border: 0; border-radius: 6px; background: transparent; color: var(--ink); padding: 6px 7px; cursor: pointer;
   font: 700 .8rem/1.2 var(--body); }
 .jump button .jn { font-weight: 500; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.jump button[aria-current="true"] { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.jump button[aria-current="true"] { background: color-mix(in srgb, var(--accent-fill) 22%, var(--surface)); }
 .jumpbtn { position: fixed; z-index: 9; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  display: none; font: 700 .85rem var(--body); border: 0; border-radius: 999px; padding: 10px 16px; background: var(--accent); color: var(--accent-ink);
+  display: none; font: 700 .85rem var(--body); border: 0; border-radius: 999px; padding: 10px 16px; background: var(--accent-fill); color: var(--accent-ink);
   box-shadow: var(--shadow); cursor: pointer; }
 @media (min-width: 760px) {
   body { padding-right: 112px; }
