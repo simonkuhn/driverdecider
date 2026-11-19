@@ -249,8 +249,8 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
   background: linear-gradient(to bottom, transparent, var(--surface) 78%); transition: opacity .2s; }
 .dmore button { position: absolute; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
   display: inline-flex; align-items: center; gap: 6px; font: 600 .84rem var(--body); color: var(--accent-ink); background: var(--accent-fill);
-  border: 0; border-radius: 999px; padding: 7px 14px 7px 16px; cursor: pointer; box-shadow: var(--shadow); transition: opacity .2s; white-space: nowrap; }
-.dmore button svg { width: 16px; height: 16px; }
+  border: 0; border-radius: 50%; width: 40px; height: 40px; padding: 0; justify-content: center; cursor: pointer; box-shadow: var(--shadow); transition: opacity .2s; white-space: nowrap; }
+.dmore button svg { width: 22px; height: 22px; }
 .dmore.end .fade, .dmore.end button { opacity: 0; pointer-events: none; }
 .dmore.end button { visibility: hidden; transition: opacity .2s, visibility 0s .2s; }
 @media (max-width: 560px) { dialog.detail { width: 100vw; height: 100dvh; border-radius: 0; margin: 0; } }
@@ -884,7 +884,7 @@ function openDetail(key, vi) {
         </div>
       </section>
     </div>`;
-  dlg.insertAdjacentHTML("beforeend", `<div class="dmore"><div class="fade"></div><button type="button" class="morebtn">More below <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>`);
+  dlg.insertAdjacentHTML("beforeend", `<div class="dmore"><div class="fade"></div><button type="button" class="morebtn" aria-label="Scroll down for more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>`);
   if (!dlg.open) { dlg.showModal(); dlg.scrollTop = 0; }
   { const t = dlg.querySelector(".vtabs"), on = t?.querySelector('[aria-pressed="true"]');
     if (on && on.offsetLeft + on.offsetWidth > t.clientWidth) t.scrollLeft = on.offsetLeft - t.clientWidth / 2 + on.offsetWidth / 2; }
