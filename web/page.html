@@ -77,7 +77,7 @@ button { font: inherit; color: inherit; }
   gap: 6px 24px; padding-bottom: 24px; }
 .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; border-radius: 2px;
   background: linear-gradient(90deg, var(--gold-bg) 0 26px, transparent 26px 44px) 0 50% / 44px 3px repeat-x, var(--road); }
-.wordmark { margin: 0; font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
+.wordmark { margin: 0; color: var(--accent); font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
 .wordmark b { font-weight: 400; color: var(--accent); }
 .tagline { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
 
@@ -99,13 +99,16 @@ button { font: inherit; color: inherit; }
 .row2 { display: flex; gap: 8px; align-items: center; margin-top: 8px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .row2 { flex-wrap: wrap; }
+.seg { display: inline-flex; flex: none; border: 1px solid var(--line); border-radius: 8px; padding: 2px; gap: 2px; background: var(--surface); }
+.seg button { border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 .86rem var(--body); padding: 0 11px; min-height: 30px; cursor: pointer; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 /* our own arrow, drawn in the text color, with room kept for it so a long label never runs under it */
 .row2 select { -webkit-appearance: none; appearance: none; padding-right: 32px !important; text-overflow: ellipsis;
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%) !important;
   background-position: right 16px center, right 11px center !important; background-size: 5px 5px, 5px 5px !important; background-repeat: no-repeat !important; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 230px; }
-@media (max-width: 600px) { .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type { flex-basis: 100%; } .count { flex-basis: 100%; margin-left: 0; } }
+@media (max-width: 600px) { .seg { flex: 1 1 100%; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type { flex-basis: 100%; } .count { flex-basis: 100%; margin-left: 0; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
 
@@ -126,6 +129,37 @@ button { font: inherit; color: inherit; }
 .sect.closed .grid, .sect.closed .hint { display: none; }
 .hint { margin: -4px 0 12px; color: var(--muted); font-size: .88rem; max-width: 60ch; }
 .bar .clear { margin-left: auto; }
+/* My Picks compare table */
+.cmpbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: -4px 0 14px; }
+.cmpbar .seg { flex: none; }
+.cmpbar .same { font: 600 .84rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 36px; cursor: pointer; }
+.cmpbar .same[aria-pressed="true"] { background: var(--accent-fill); color: var(--accent-ink); border-color: var(--accent-fill); }
+.cmpbar .note { color: var(--muted); font-size: .84rem; flex-basis: 100%; }
+.cmpwrap { width: fit-content; max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); -webkit-overflow-scrolling: touch; }
+.cmp { border-collapse: separate; border-spacing: 0; font-size: .88rem; }
+.cmp th, .cmp td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.cmp td { width: 180px; min-width: 132px; max-width: 200px; font-variant-numeric: tabular-nums; }
+.cmp tbody th { position: sticky; left: 0; z-index: 1; background: var(--surface); color: var(--muted); font-weight: 600; width: 112px; min-width: 112px; max-width: 112px; border-right: 1px solid var(--line); }
+.cmp thead th { background: var(--surface); vertical-align: bottom; }
+.cmp thead th:first-child { position: sticky; left: 0; z-index: 2; border-right: 1px solid var(--line); }
+.cmp .car { display: grid; gap: 2px; min-width: 128px; }
+.cmp .car img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; margin-bottom: 4px; background: var(--line); }
+.cmp .car .brand { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.cmp .car button.open { all: unset; cursor: pointer; font: 400 1.35rem/1 var(--display); text-transform: uppercase; color: var(--ink); }
+.cmp .car button.open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cmp .car .yrs { font-size: .8rem; color: var(--accent); font-weight: 600; }
+.cmp .car .rm { justify-self: start; margin-top: 4px; font: 600 .76rem var(--body); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+.cmp tr.grp th { position: sticky; left: 0; background: var(--bg); color: var(--ink); font: 400 1.05rem/1 var(--display); text-transform: uppercase; letter-spacing: .04em; padding-top: 14px; border-right: 0; width: auto; max-width: none; }
+.cmp tr.grp td { background: var(--bg); }
+.cmp tr.diff th { color: var(--ink); box-shadow: inset 3px 0 0 var(--accent-fill); }
+.cmp tr.same td { color: var(--muted); }
+.cmp td.best { background: var(--r-green); color: var(--r-green-ink); font-weight: 600; }
+.cmp td.worst { color: var(--r-red-ink); }
+.cmp td .b { margin: 0 4px 3px 0; }
+.cmp td small { display: block; color: var(--muted); font-size: .74rem; }
+
+.cmp tbody tr:last-child > * { border-bottom: 0; }
+@media (max-width: 600px) { .cmp tbody th { width: 92px; min-width: 92px; max-width: 92px; padding-left: 8px; padding-right: 6px; font-size: .82rem; } .cmp td { min-width: 124px; } }
 .bar .clear + .tog { margin-left: 0; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 22px 18px; }
@@ -279,6 +313,7 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
   <div class="filters" role="search" aria-label="Filters">
     <div class="chips" id="chips"></div>
     <div class="row2">
+      <div class="seg" id="view" role="group" aria-label="Show cars"><button type="button" data-view="model" aria-pressed="true">By model</button><button type="button" data-view="year" aria-pressed="false">By year</button></div>
       <label class="sr" for="type">Type of car</label>
       <select id="type"><option value="">All types of vehicles</option></select>
       <label class="sr" for="drive">Drive</label>
@@ -340,6 +375,9 @@ let saved = { hl: [], ban: [] };
 try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.hl) && Array.isArray(s.ban)) saved = s; } catch {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {} };
 const isHl = (id) => saved.hl.includes(id), isBan = (id) => saved.ban.includes(id);
+const modelOf = (key) => String(key).split("@")[0];
+// a year card counts as picked or banished when its year or its whole model is
+const hlKey = (key) => isHl(key) || isHl(modelOf(key)), banKey = (key) => isBan(key) || isBan(modelOf(key));
 
 // ---- icons ----
 const ICON = {
@@ -391,7 +429,7 @@ const GROUPS = [
   { id: "rel", chips: [{ v: "rel", label: "Reliability: High", test: (r) => r["Reliability (High/Med/Low)"] === "High" }] },
 ];
 const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
-const ui = { sort: "price", max: "", type: "", drive: "", fuel: "" };
+const ui = { sort: "price", max: "", type: "", drive: "", fuel: "", view: "model" };
 try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
 const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
@@ -442,6 +480,9 @@ for (const [id, order, label] of [["drive", ["Front-wheel drive", "All-wheel dri
   $(id).value = ui[id];
   $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); });
 }
+const setView = () => $("view").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === ui.view)));
+setView();
+$("view").addEventListener("click", (e) => { const b = e.target.closest("[data-view]"); if (!b) return; ui.view = b.dataset.view; setView(); saveUi(); render(); });
 $("sort").value = ui.sort; $("max").value = ui.max;
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
 $("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
@@ -464,18 +505,19 @@ function sorted(list) {
 
 // ---- cards ----
 const levelsLine = (rows, k) => { const v = [...new Set(rows.map((r) => r[k]).filter(Boolean))]; return v.sort((p, q) => (RANK[q] || 0) - (RANK[p] || 0)).join("/"); };
-function card(c, rows, mode) {
+function card(it, mode) {
+  const c = it.c, rows = it.rows, key = it.key;
   const prices = rows.map((r) => r["KBB private party $"]);
   const mpg = range(rows.map((r) => r["Combined MPG"]), String);
   const pick = c.rows.some((r) => r["Simon's pick"] === "Yes");
   const safety = levelsLine(rows, "Safety level (High/Med/Low)"), rel = levelsLine(rows, "Reliability (High/Med/Low)");
   const nV = rows.length, years = yearsOf(rows);
-  const hl = isHl(c.id);
+  const hl = hlKey(key);
   const long = c.title.length > 8 ? " long" : "";
   const contain = ["cooper", "coopers", "impreza4", "corolla11"].includes(c.id) ? " contain" : "";
   const summary = c.rows[0].Summary || "";
-  return `<article class="card${hl ? " hlt" : ""}${mode === "gone" ? " gone" : ""}" data-id="${c.id}">
-    <button type="button" class="poster" style="--tone:${c.tone}" data-open="${c.id}" aria-label="${esc(c.brand + " " + c.title + ", " + c.gen + ", " + years)}">
+  return `<article class="card${hl ? " hlt" : ""}${mode === "gone" ? " gone" : ""}" data-id="${key}">
+    <button type="button" class="poster" style="--tone:${c.tone}" data-open="${key}" aria-label="${esc(c.brand + " " + c.title + ", " + c.gen + ", " + years)}">
       <img class="shot${contain}" src="${esc(c.ext)}" alt="" loading="lazy" decoding="async">
       <span class="ptext">
         <span class="brand">${esc(c.brand)}</span>
@@ -486,8 +528,8 @@ function card(c, rows, mode) {
       </span>
     </button>
     ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
-    ${mode === "gone" ? `<button type="button" class="back" data-back="${c.id}">Bring back</button>` : ""}
-    ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${c.id}" aria-pressed="${hl}" title="${hl ? "Remove from My Picks" : "Add to My Picks"}" aria-label="${hl ? "Remove " + esc(c.title) + " from My Picks" : "Add " + esc(c.title) + " to My Picks"}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${c.id}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
+    ${mode === "gone" ? `<button type="button" class="back" data-back="${key}">Bring back</button>` : ""}
+    ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${key}" aria-pressed="${hl}" title="${hl ? "Remove from My Picks" : "Add to My Picks"}" aria-label="${hl ? "Remove " + esc(c.title) + " from My Picks" : "Add " + esc(c.title) + " to My Picks"}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${key}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
     <div class="info"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>${rows.length === 1 ? "1 version" : rows.length + " versions"} · 5-year cost from ${money(Math.min(...rows.map((r) => r["5-year cost $"])))}</small></div>
   </article>`;
 }
@@ -509,15 +551,22 @@ function section(id, title, items, mode) {
   return `<section class="sect ${id}${shut ? " closed" : ""}" aria-labelledby="h-${id}">
     <div class="bar"><h2 id="h-${id}">${SECT_ICON[id] || ""}${esc(title)}</h2><span class="n">${items.length}</span>
       <button type="button" class="tog" data-tog="${id}" aria-expanded="${!shut}">${shut ? "Expand" : "Collapse"}</button></div>
-    ${note}<div class="grid">${items.map((x) => card(x.c, x.rows, mode)).join("")}</div></section>`;
+    ${note}${id === "hl" && items.length > 1 ? cmpBar(items.length > 2) : ""}${id === "hl" && items.length > 1 && ui.cmp === "table" ? compareTable(items) : `<div class="grid">${items.map((x) => card(x, mode)).join("")}</div>`}</section>`;
+}
+// a card per model, or (By year) a card per model and year
+function items() {
+  if (ui.view !== "year") return CARS.map((c) => ({ key: c.id, c, rows: c.rows }));
+  return CARS.flatMap((c) => [...new Set(c.rows.map((r) => r.Year))].map((y) => ({ key: c.id + "@" + y, c, year: y, rows: c.rows.filter((r) => r.Year === y) })));
 }
 function render() {
   renderChips();
   const hls = [], picks = [], rest = [], gone = [];
-  for (const c of CARS) {
-    if (isBan(c.id)) { gone.push({ c, rows: c.rows }); continue; }
-    const rows = matchRows(c); if (!rows.length) continue;
-    (isHl(c.id) ? hls : isPick(c) ? picks : rest).push({ c, rows });
+  const all = items();
+  for (const it of all) {
+    if (banKey(it.key)) { gone.push(it); continue; }
+    const rows = it.rows.filter((r) => rowPasses(r)); if (!rows.length) continue;
+    const x = { ...it, rows };
+    (hlKey(it.key) ? hls : x.rows.some((r) => r["Simon's pick"] === "Yes") ? picks : rest).push(x);
   }
   sorted(hls); sorted(picks); sorted(rest); sorted(gone);
   $("sections").innerHTML =
@@ -528,7 +577,7 @@ function render() {
   renderJump([["hl", "My Picks", hls], ["picks", "Simon's picks", picks], ["rest", picks.length || hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
   const shown = hls.length + picks.length + rest.length;
   $("empty").hidden = shown > 0;
-  $("count").innerHTML = shown + " of " + (CARS.length - gone.length) + " cars" + (anyFilter() ? ' · <button type="button" class="clear" data-clear>Clear filters</button>' : "");
+  $("count").innerHTML = shown + " of " + (all.length - gone.length) + (ui.view === "year" ? " model years" : " cars") + (anyFilter() ? ' · <button type="button" class="clear" data-clear>Clear filters</button>' : "");
 }
 function renderJump(list) {
   const nav = $("jump");
@@ -569,20 +618,98 @@ function toast(text, fn) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => ($("toast").hidden = true), 5000);
 }
 $("undo").addEventListener("click", () => { if (undoFn) undoFn(); undoFn = null; $("toast").hidden = true; });
-const nameOf = (id) => { const c = CARS.find((x) => x.id === id); return c ? c.title : ""; };
-function setHl(id, v) { saved.hl = saved.hl.filter((x) => x !== id); if (v) saved.hl.push(id); save(); render(); }
+const nameOf = (key) => { const [id, y] = String(key).split("@"); const c = CARS.find((x) => x.id === id); return c ? (y ? y + " " : "") + c.title : ""; };
+// take a key out of a list; when the whole model is in the list, keep its other years in it
+function dropKey(list, key) {
+  const id = modelOf(key); let l = saved[list];
+  if (key !== id && l.includes(id)) {
+    l = l.filter((x) => x !== id);
+    for (const y of new Set(CARS.find((c) => c.id === id).rows.map((r) => r.Year))) if (id + "@" + y !== key && !l.includes(id + "@" + y)) l.push(id + "@" + y);
+  }
+  l = l.filter((x) => x !== key);
+  if (key === id) l = l.filter((x) => modelOf(x) !== id);
+  saved[list] = l;
+}
+function setHl(id, v) { if (v) { saved.hl = saved.hl.filter((x) => x !== id); saved.hl.push(id); } else dropKey("hl", id); save(); render(); }
+// bringing back one year of a banished model keeps the model's other years banished
+function bringBack(key) {
+  dropKey("ban", key); save(); render();
+}
 function setBan(id, v) {
   saved.ban = saved.ban.filter((x) => x !== id); saved.hl = saved.hl.filter((x) => !(v && x === id));
   if (v) saved.ban.push(id); save(); render();
 }
 document.addEventListener("click", (e) => {
+  const m = e.target.closest("[data-cmp],[data-same]");
+  if (m) { if (m.dataset.cmp) ui.cmp = m.dataset.cmp; else ui.same = !ui.same; saveUi(); render(); document.querySelector(m.dataset.cmp ? `[data-cmp="${m.dataset.cmp}"]` : "[data-same]")?.focus(); return; }
   const t = e.target.closest("[data-hl],[data-ban],[data-back],[data-open]"); if (!t) return;
-  if (t.dataset.hl) { const id = t.dataset.hl, v = !isHl(id); setHl(id, v); if (v) toast(nameOf(id) + " added to My Picks", () => setHl(id, false)); if (dlg.open) openDetail(id); }
+  if (t.dataset.hl) { const id = t.dataset.hl, v = !hlKey(id); setHl(id, v); if (v) toast(nameOf(id) + " added to My Picks", () => setHl(id, false)); if (dlg.open) openDetail(id); }
   else if (t.dataset.ban) { const id = t.dataset.ban, was = isHl(id); setBan(id, true); if (dlg.open) dlg.close();
     toast(nameOf(id) + " banished", () => { setBan(id, false); if (was) setHl(id, true); }); }
-  else if (t.dataset.back) { setBan(t.dataset.back, false); toast(nameOf(t.dataset.back) + " is back in the lineup", () => setBan(t.dataset.back, true)); }
+  else if (t.dataset.back) { const key = t.dataset.back, before = saved.ban.slice(); bringBack(key); toast(nameOf(key) + " is back in the lineup", () => { saved.ban = before; save(); render(); }); }
   else if (t.dataset.open) openDetail(t.dataset.open);
 });
+
+// ---- My Picks compare table ----
+const CMP = [
+  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ["Insurance a year", "Annual insurance $", "money", -1],
+    ["Fuel a year", "Annual fuel $", "money", -1], ["Repairs a year", "Annual repair cost $", "money", -1], ["Combined MPG", "Combined MPG", "n", 1], ["Est. miles", "Est. miles", "num", -1]]],
+  ["Safety", [["Safety level", "Safety level (High/Med/Low)", "level"], ["NHTSA", "NHTSA stars", "nhtsa"], ["IIHS", "IIHS award", "iihs"]]],
+  ["Reliability", [["Reliability", "Reliability (High/Med/Low)", "level"], ["CR reliability (0–100)", "CR reliability (0-100)", "cr", 1], ["CR owner satisfaction (0–100)", "CR owner satisfaction (0-100)", "cr", 1]]],
+  ["The car", [["Size", "Size"], ["Body", "Body style"], ["Fuel", "Gas/Hybrid"], ["Drive", "Drive"], ["Engine", "Engine"], ["Transmission", "Transmission"],
+    ["Horsepower", "Horsepower", "n", 1], ["Power level", "Power level", "level"], ["Interior quality", "Interior quality"],
+    ["Cargo (cu ft)", "Cargo (cu ft)", "n", 1], ["Rear legroom (in)", "Rear legroom (in)", "n", 1], ["Turning circle (ft)", "Turning circle (ft)", "n", -1]]],
+  ["Features", ["Bluetooth", "Backup camera", "Cruise control", "Heated seats", "Keyless entry", "Push-button start", "USB/aux input"].map((f) => [f, f])],
+  ["For sale", [["Number for sale", "Number for sale (Autotrader)", "sale", 1]]],
+];
+const cmpBar = (list3) => `<div class="cmpbar"><div class="seg" role="group" aria-label="Show My Picks as">
+  <button type="button" data-cmp="cards" aria-pressed="${ui.cmp !== "table"}">Cards</button><button type="button" data-cmp="table" aria-pressed="${ui.cmp === "table"}">Compare</button></div>
+  ${ui.cmp === "table" ? `<button type="button" class="same" data-same aria-pressed="${!!ui.same}">Only differences</button><span class="note">A yellow edge marks a difference. Green is the best of your picks${list3 ? ", red text the worst" : ""}.</span>` : ""}</div>`;
+function cmpCell(it, f) {
+  const [, k, kind] = f;
+  const vals = it.rows.map((r) => r[k]).filter((v) => v != null && v !== "");
+  const uniq = [...new Set(vals.map(String))];
+  const isNum = ["money", "n", "num", "cr", "sale"].includes(kind);
+  if (isNum) {
+    const ns = vals.filter((v) => typeof v === "number");
+    if (!ns.length) return { html: kind === "cr" ? badge("NA", "") : "—", sig: "—" };
+    const lo = Math.min(...ns), hi = Math.max(...ns), fm = kind === "money" ? money : num;
+    let html = lo === hi ? fm(lo) : fm(lo) + "–" + fm(hi);
+    if (kind === "cr") html = ns.length === 1 ? badge(lo, crCls(lo, k.includes("satisfaction") ? 40 : 20)) : badge(lo + "–" + hi, crCls(Math.round((lo + hi) / 2), k.includes("satisfaction") ? 40 : 20));
+    if (kind === "sale") html = lo === hi ? badge(num(lo) + " · " + saleLevel(lo), saleCls(lo)) : html;
+    return { html, sig: lo + "–" + hi, v: ns.reduce((a, b) => a + b, 0) / ns.length };
+  }
+  if (!uniq.length) return { html: "—", sig: "—" };
+  const one = (v) => kind === "level" ? badge(v, LEVEL[v]) : kind === "nhtsa" ? badge(v, nhtsaCls(v)) : kind === "iihs" ? badge(v, iihsCls(v)) : esc(v);
+  return { html: uniq.map(one).join(kind ? "" : "<br>"), sig: uniq.sort().join("|") };
+}
+function compareTable(list) {
+  const head = list.map((it) => {
+    const yrs = it.year ? String(it.year) : yearsOf(it.rows);
+    return `<th scope="col"><div class="car"><img src="${esc(it.c.ext)}" alt="" loading="lazy"><span class="brand">${esc(it.c.brand)}</span>
+      <button type="button" class="open" data-open="${esc(it.key)}">${esc(it.c.title)}</button><span class="yrs">${esc(yrs)}</span>
+      <button type="button" class="rm" data-hl="${esc(it.key)}" aria-label="Remove ${esc(nameOf(it.key))} from My Picks">Remove</button></div></th>`;
+  }).join("");
+  let body = "";
+  for (const [g, fields] of CMP) {
+    let rowsHtml = "";
+    for (const f of fields) {
+      const cells = list.map((it) => cmpCell(it, f));
+      if (cells.every((x) => x.sig === "—")) continue;
+      const same = new Set(cells.map((x) => x.sig)).size === 1;
+      if (same && ui.same) continue;
+      let best = null, worst = null;
+      if (!same && f[3] && f[2] !== "cr" && f[2] !== "sale") {
+        const vs = cells.map((x) => x.v).filter((v) => v != null);
+        if (vs.length > 1) { best = f[3] > 0 ? Math.max(...vs) : Math.min(...vs); worst = f[3] > 0 ? Math.min(...vs) : Math.max(...vs); if (best === worst) best = worst = null; if (vs.length < 3) worst = null; }
+      }
+      rowsHtml += `<tr class="${same ? "same" : "diff"}"><th scope="row">${esc(f[0])}</th>${cells.map((x) =>
+        `<td class="${x.v != null && x.v === best ? "best" : x.v != null && x.v === worst ? "worst" : ""}">${x.html}</td>`).join("")}</tr>`;
+    }
+    if (rowsHtml) body += `<tr class="grp"><th scope="rowgroup">${esc(g)}</th><td colspan="${list.length}"></td></tr>` + rowsHtml;
+  }
+  return `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
 
 // ---- detail sheet ----
 const dlg = $("detail");
@@ -620,9 +747,11 @@ const ROW_FIELDS = (c, r) => {
 const dl = (pairs) => `<dl class="facts">${pairs.filter((p) => p[1] !== "" && p[1] != null).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
 const vlabel = (r) => r.variant ? `${r.Year} ${r.variant}` : String(r.Year);
 let curVar = {};
-function openDetail(id, vi) {
+function openDetail(key, vi) {
+  const [id, yr] = String(key).split("@");
   const c = CARS.find((x) => x.id === id); if (!c) return;
   const rows = c.rows, matched = new Set(matchRows(c));
+  if (vi == null && yr) vi = Math.max(0, rows.findIndex((r) => String(r.Year) === yr && matched.has(r)), rows.findIndex((r) => String(r.Year) === yr));
   if (vi == null) vi = curVar[id] ?? Math.max(0, rows.findIndex((r) => matched.has(r)));
   curVar[id] = vi;
   const r = rows[vi];
@@ -634,7 +763,9 @@ function openDetail(id, vi) {
     if (v == null || v === "" || v === "NA") continue;
     (varies(f[0]) ? rowExtra : carPairs).push([f[1], fmt(f, v)]);
   }
-  const pick = rows.some((x) => x["Simon's pick"] === "Yes"), hl = isHl(id);
+  const dkey = ui.view === "year" ? id + "@" + r.Year : id;
+  const pick = rows.some((x) => x["Simon's pick"] === "Yes"), hl = hlKey(dkey);
+  dlg.dataset.car = id;
   const y1 = rows[0].Year, y2 = rows[rows.length - 1].Year;
   dlg.innerHTML = `
     <div class="dtop">
@@ -649,8 +780,8 @@ function openDetail(id, vi) {
         <span class="gen">${esc(c.gen)} · ${esc(yearsOf(rows))}</span>
         ${rows[0].Summary ? `<p class="sum">${esc(rows[0].Summary)}</p>` : ""}
         <div class="dacts">
-          <button type="button" class="hl${hl ? " on" : ""}" data-hl="${id}" aria-pressed="${hl}">${hl ? ICON.markOn + " In My Picks" : ICON.mark + " Add to My Picks"}</button>
-          <button type="button" data-ban="${id}">${ICON.ban} Banish</button>
+          <button type="button" class="hl${hl ? " on" : ""}" data-hl="${dkey}" aria-pressed="${hl}">${hl ? ICON.markOn + " In My Picks" : ICON.mark + (ui.view === "year" ? " Add " + r.Year + " to My Picks" : " Add to My Picks")}</button>
+          <button type="button" data-ban="${dkey}">${ICON.ban} ${ui.view === "year" ? "Banish " + r.Year : "Banish"}</button>
         </div>
       </div>
     </div>
@@ -689,7 +820,7 @@ function openDetail(id, vi) {
 dlg.addEventListener("click", (e) => {
   if (e.target === dlg) { dlg.close(); return; }
   const b = e.target.closest("[data-vi]"); if (!b) return;
-  const id = CARS.find((c) => dlg.querySelector(`[data-ban="${c.id}"]`))?.id;
+  const id = dlg.dataset.car;
   if (id) { const top = dlg.scrollTop; openDetail(id, +b.dataset.vi); dlg.scrollTop = top; dlg.querySelector(`[data-vi="${b.dataset.vi}"]`)?.focus(); }
 });
 
