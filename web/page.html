@@ -210,7 +210,7 @@ button { font: inherit; color: inherit; }
   letter-spacing: .06em; text-transform: uppercase; padding: 5px 7px; border-radius: 4px; pointer-events: none; }
 .cbtns { position: absolute; z-index: 3; top: 6px; right: 6px; display: flex; gap: 6px; }
 .cbtn { width: 36px; height: 36px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; display: grid; place-items: center;
-  background: rgb(10 12 14 / .55); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  background: rgb(10 12 14 / .66); color: #fff; }
 .cbtn svg { width: 18px; height: 18px; }
 .cbtn:hover { background: rgb(10 12 14 / .85); }
 .cbtn.hl.on, .cbtn.hl.on:hover { background: var(--gold-bg); color: #241a00; }
@@ -573,7 +573,7 @@ function card(it, mode) {
   const summary = c.rows[0].Summary || "";
   return `<article class="card${hl ? " hlt" : ""}${mode === "gone" ? " gone" : ""}" data-id="${key}">
     <button type="button" class="poster" style="--tone:${c.tone}" data-open="${key}" aria-label="${esc(c.brand + " " + c.title + ", " + c.gen + ", " + years)}">
-      <img class="shot${contain}" src="${esc(c.ext)}" alt="" loading="lazy" decoding="async">
+      <img class="shot${contain}" src="${esc(c.card || c.ext)}" alt="">
       <span class="ptext">
         <span class="brand">${esc(c.brand)}</span>
         <span class="ttl${long}">${esc(c.title)}</span>
@@ -606,7 +606,20 @@ function section(id, title, items, mode) {
   return `<section class="sect ${id}${shut ? " closed" : ""}" aria-labelledby="h-${id}">
     <div class="bar"><h2 id="h-${id}">${SECT_ICON[id] || ""}${esc(title)}</h2><span class="n">${items.length}</span>
       <button type="button" class="tog" data-tog="${id}" aria-expanded="${!shut}">${shut ? "Expand" : "Collapse"}</button></div>
-    ${note}${id === "hl" && items.length > 1 ? cmpBar(items.length > 2) : ""}${id === "hl" && items.length > 1 && ui.cmp === "table" ? compareTable(items) : `<div class="grid">${items.map((x) => card(x, mode)).join("")}</div>`}</section>`;
+    ${note}${id === "hl" && items.length > 1 ? cmpBar(items.length > 2) : ""}${id === "hl" && items.length > 1 && ui.cmp === "table" ? compareTable(items) : (fill[id] = items.map((x) => card(x, mode)), `<div class="grid" data-grid="${id}"></div>`)}</section>`;
+}
+// Filtering rebuilds the sections, but a card whose markup is unchanged is moved back in as the same element,
+// so its photo is not decoded again and nothing flickers.
+const cardEls = new Map(); let fill = {};
+function cardEl(html) {
+  let el = cardEls.get(html);
+  if (!el) { const t = document.createElement("template"); t.innerHTML = html; el = t.content.firstElementChild; cardEls.set(html, el); }
+  return el;
+}
+function fillGrids() {
+  if (cardEls.size > 600) cardEls.clear();
+  document.querySelectorAll("[data-grid]").forEach((g) => g.append(...(fill[g.dataset.grid] || []).map(cardEl)));
+  fill = {};
 }
 // a card per model, or (By year) a card per model and year
 function items() {
@@ -629,6 +642,7 @@ function render() {
     section("hl", "My Picks", hls) +
     section("rest", hls.length ? "The rest" : "All cars", rest) +
     section("gone", "Banished", gone, "gone");
+  fillGrids();
   renderJump([["hl", "My Picks", hls], ["rest", hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
   const shown = hls.length + rest.length;
   $("empty").hidden = shown > 0;
@@ -741,7 +755,7 @@ function cmpCell(it, f) {
 function compareTable(list) {
   const head = list.map((it) => {
     const yrs = it.year ? String(it.year) : yearsOf(it.rows);
-    return `<th scope="col"><div class="car"><img src="${esc(it.c.ext)}" alt="" loading="lazy"><span class="brand">${esc(it.c.brand)}</span>
+    return `<th scope="col"><div class="car"><img src="${esc(it.c.card || it.c.ext)}" alt=""><span class="brand">${esc(it.c.brand)}</span>
       <button type="button" class="open" data-open="${esc(it.key)}">${esc(it.c.title)}</button><span class="yrs">${esc(yrs)}</span>
       <button type="button" class="rm" data-hl="${esc(it.key)}" aria-label="Remove ${esc(nameOf(it.key))} from My Picks">Remove</button></div></th>`;
   }).join("");
@@ -864,7 +878,7 @@ function openDetail(key, vi) {
       </section>
       <section>
         <h3>Inside</h3>
-        <img class="inter" src="${esc(c.int)}" alt="${esc(c.title)} dashboard and front seats" loading="lazy">
+        <img class="inter" src="${esc(c.int)}" alt="${esc(c.title)} dashboard and front seats">
       </section>
       <section>
         <h3>Look it up</h3>
