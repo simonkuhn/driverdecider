@@ -862,7 +862,7 @@ document.addEventListener("click", (e) => {
 
 // ---- My Picks compare table ----
 const CMP = [
-  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ...COST_PARTS.map(([k]) => [{ buy: "Price, tax, fees", fuel: "Fuel, 5 yrs", fix: "Repairs, 5 yrs" }[k], "_" + k, "money", -1, "sub"]), ["Insurance a year", "Annual insurance $", "money", -1],
+  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ...COST_PARTS.map(([k]) => [{ buy: "Price, tax, fees", fuel: "Fuel cost", fix: "Repairs" }[k], "_" + k, "money", -1, "sub"]), ["Insurance a year", "Annual insurance $", "money", -1],
     ["Fuel a year", "Annual fuel $", "money", -1], ["Repairs a year", "Annual repair cost $", "money", -1], ["Combined MPG", "Combined MPG", "n", 1], ["Est. miles", "Est. miles", "num", -1]]],
   ["Safety", [["Safety level", "Safety level (High/Med/Low)", "level"], ["NHTSA", "NHTSA stars", "nhtsa"], ["IIHS", "IIHS award", "iihs"]]],
   ["Reliability", [["Reliability", "Reliability (High/Med/Low)", "level"], ["CR reliability (0–100)", "CR reliability (0-100)", "cr", 1], ["CR owner satisfaction (0–100)", "CR owner satisfaction (0-100)", "cr", 1]]],
@@ -897,6 +897,8 @@ function cmpCell(it, f) {
   const one = (v) => kind === "level" ? badge(v, LEVEL[v]) : kind === "nhtsa" ? badge(v, nhtsaCls(v)) : kind === "iihs" ? badge(v, iihsCls(v)) : esc(v);
   return { html: uniq.map(one).join(kind ? "" : "<br>"), sig: uniq.sort().join("|") };
 }
+const SORT_ROW = { cost: "5-year cost $", price: "KBB private party $", mpg: "Combined MPG", safety: "Safety level (High/Med/Low)",
+  rel: "Reliability (High/Med/Low)", sale: "Number for sale (Autotrader)" };
 function compareTable(list) {
   const head = list.map((it) => {
     const yrs = it.year ? String(it.year) : yearsOf(it.rows);
@@ -905,7 +907,11 @@ function compareTable(list) {
       <button type="button" class="rm" data-hl="${esc(it.key)}" aria-label="Remove ${esc(nameOf(it.key))} from My Picks">Remove</button></div></th>`;
   }).join("");
   let body = "";
-  for (const [g, fields] of CMP) {
+  // the row the list is sorted by comes first, in its own group (the 5-year cost keeps its breakdown under it)
+  const sk = SORT_ROW[ui.sort];
+  const groups = sk ? [["Sorted by", CMP.flatMap(([, fs]) => fs).filter((f) => f[1] === sk || (sk === "5-year cost $" && f[4] === "sub")), true],
+    ...CMP.map(([g, fs]) => [g, fs.filter((f) => !(f[1] === sk || (sk === "5-year cost $" && f[4] === "sub")))])] : CMP;
+  for (const [g, fields, top] of groups) {
     let rowsHtml = "";
     for (const f of fields) {
       if (f[4] === "sub" && !ui.costOpen) continue;
@@ -913,7 +919,7 @@ function compareTable(list) {
       const cells = list.map((it) => cmpCell(it, f));
       if (cells.every((x) => x.sig === "—")) continue;
       const same = new Set(cells.map((x) => x.sig)).size === 1;
-      if (same && ui.same) continue;
+      if (same && ui.same && !top) continue;
       let best = null, worst = null;
       if (!same && f[3] && f[2] !== "cr" && f[2] !== "sale") {
         const vs = cells.map((x) => x.v).filter((v) => v != null);
@@ -922,7 +928,7 @@ function compareTable(list) {
       rowsHtml += `<tr class="${same ? "same" : "diff"}${f[4] ? " " + f[4] : ""}"><th scope="row">${esc(f[0])}${f[1] === "5-year cost $" ? `<button type="button" class="costtog" data-costcmp aria-expanded="${!!ui.costOpen}"><span>Breakdown</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>` : ""}</th>${cells.map((x) =>
         `<td class="${x.v != null && x.v === best ? "best" : x.v != null && x.v === worst ? "worst" : ""}">${x.html}</td>`).join("")}</tr>`;
     }
-    if (rowsHtml) body += `<tr class="grp"><th scope="rowgroup">${esc(g)}</th><td colspan="${list.length}"></td></tr>` + rowsHtml;
+    if (rowsHtml) body += `<tr class="grp${top ? " sortgrp" : ""}"><th scope="rowgroup">${esc(g)}</th><td colspan="${list.length}"></td></tr>` + rowsHtml;
   }
   return `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
