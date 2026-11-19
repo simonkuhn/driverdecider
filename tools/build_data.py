@@ -1,5 +1,5 @@
 import json, re
-OUT='public/driverdecider/'
+OUT='site/'
 from PIL import Image, ImageStat
 P='/mnt/project-files/car-comparison/photos/'
 r=json.load(open('data/sheet-rows.json')); H=r['1']

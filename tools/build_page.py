@@ -1,4 +1,4 @@
-"""Wrap web/page.html (an Artifact-style page body) into public/driverdecider/index.html."""
+"""Wrap web/page.html (an Artifact-style page body) into site/index.html."""
 HEAD = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -6,4 +6,4 @@ HEAD = """<!doctype html>
 """
 page = open("web/page.html", encoding="utf-8").read()
 cut = page.index("</style>") + len("</style>")
-open("public/driverdecider/index.html", "w", encoding="utf-8").write(HEAD + page[:cut] + "\n</head><body>\n" + page[cut:] + "\n</body></html>\n")
+open("site/index.html", "w", encoding="utf-8").write(HEAD + page[:cut] + "\n</head><body>\n" + page[cut:] + "\n</body></html>\n")
