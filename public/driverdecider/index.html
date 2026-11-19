@@ -155,7 +155,8 @@ button { font: inherit; color: inherit; }
 .cmp .car .rm { justify-self: start; margin-top: 4px; font: 600 .76rem var(--body); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
 .cmp tr.grp th { position: sticky; left: 0; background: var(--bg); color: var(--ink); font: 400 1.05rem/1 var(--display); text-transform: uppercase; letter-spacing: .04em; padding-top: 14px; border-right: 0; width: auto; max-width: none; }
 .cmp tr.grp td { background: var(--bg); }
-.cmp tr.diff th { color: var(--ink); box-shadow: inset 3px 0 0 var(--accent-fill); }
+.cmp tr.diff th { color: var(--ink); }
+.cmp tr.grp th { box-shadow: inset 3px 0 0 var(--accent-fill); }
 .cmp tr.same td { color: var(--muted); }
 .cmp td.best { background: var(--r-green); color: var(--r-green-ink); font-weight: 600; }
 .cmp td.worst { color: var(--r-red-ink); }
@@ -670,7 +671,7 @@ const CMP = [
 ];
 const cmpBar = (list3) => `<div class="cmpbar"><div class="seg" role="group" aria-label="Show My Picks as">
   <button type="button" data-cmp="cards" aria-pressed="${ui.cmp !== "table"}">Cards</button><button type="button" data-cmp="table" aria-pressed="${ui.cmp === "table"}">Compare</button></div>
-  ${ui.cmp === "table" ? `<button type="button" class="same" data-same aria-pressed="${!!ui.same}">Only differences</button><span class="note">A yellow edge marks a difference. Green is the best of your picks${list3 ? ", red text the worst" : ""}.</span>` : ""}</div>`;
+  ${ui.cmp === "table" ? `<button type="button" class="same" data-same aria-pressed="${!!ui.same}">Only differences</button><span class="note">Rows where your picks match are dimmed. Green is the best of your picks${list3 ? ", red text the worst" : ""}.</span>` : ""}</div>`;
 function cmpCell(it, f) {
   const [, k, kind] = f;
   const vals = it.rows.map((r) => r[k]).filter((v) => v != null && v !== "");
