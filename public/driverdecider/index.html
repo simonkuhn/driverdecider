@@ -112,7 +112,13 @@ button { font: inherit; color: inherit; }
   background-position: right 16px center, right 11px center !important; background-size: 5px 5px, 5px 5px !important; background-repeat: no-repeat !important; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 0 1 auto; max-width: 100%; }
-@media (max-width: 600px) { .seg { flex: 1 1 100%; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type, .row2 #sort { flex-basis: 100%; } .count { flex: 1 1 calc(50% - 8px); margin-left: 0; padding-left: 4px; white-space: normal; } }
+@media (max-width: 600px) {
+  .fold { display: block; flex: none; font: 600 .86rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
+  .fold.on { background: var(--accent-fill); color: var(--accent-ink); border-color: var(--accent-fill); }
+  .row2.folded > select, .row2.folded > .count { display: none; }
+}
+@media (max-width: 600px) { .seg { flex: 1 1 0; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type, .row2 #sort { flex-basis: 100%; } .count { flex: 1 1 calc(50% - 8px); margin-left: 0; padding-left: 4px; white-space: normal; } }
+@media (min-width: 601px) { .fold { display: none; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* desktop: a big By model / By year switch on the left, the seven dropdowns and the count in a 4-column, 2-row grid beside it */
 @media (min-width: 1100px) {
@@ -334,6 +340,7 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
   <div class="filters" role="search" aria-label="Filters">
     <div class="row2">
       <div class="seg" id="view" role="group" aria-label="Show cars"><button type="button" data-view="model" aria-pressed="true">By model</button><button type="button" data-view="year" aria-pressed="false">By year</button></div>
+      <button type="button" class="fold" id="fold" aria-expanded="true">Hide filters</button>
       <label class="sr" for="type">Type of car</label>
       <select id="type"><option value="">All shapes of vehicles</option></select>
       <label class="sr" for="drive">Drive</label>
@@ -510,6 +517,11 @@ const setView = () => $("view").querySelectorAll("button").forEach((b) => b.setA
 setView();
 $("view").addEventListener("click", (e) => { const b = e.target.closest("[data-view]"); if (!b) return; ui.view = b.dataset.view; setView(); saveUi(); render(); });
 $("sort").value = ui.sort; $("max").value = ui.max;
+// iPhone: the filter bar folds down to just By model / By year
+const setFold = () => { const f = !!ui.fold, n = [ui.type, ui.drive, ui.fuel, ui.safe, ui.rel, ui.max].filter(Boolean).length;
+  $("fold").closest(".row2").classList.toggle("folded", f); $("fold").setAttribute("aria-expanded", String(!f));
+  $("fold").textContent = f ? "Filters" + (n ? " · " + n : "") : "Hide filters"; $("fold").classList.toggle("on", f && n > 0); };
+$("fold").addEventListener("click", () => { ui.fold = !ui.fold; saveUi(); setFold(); });
 for (const id of ["safe", "rel"]) { if (!["", "High", "Med"].includes(ui[id])) ui[id] = ""; $(id).value = ui[id]; $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); }); }
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
 $("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
@@ -586,6 +598,7 @@ function items() {
   return CARS.flatMap((c) => [...new Set(c.rows.map((r) => r.Year))].map((y) => ({ key: c.id + "@" + y, c, year: y, rows: c.rows.filter((r) => r.Year === y) })));
 }
 function render() {
+  setFold();
   renderChips();
   const hls = [], picks = [], rest = [], gone = [];
   const all = items();
