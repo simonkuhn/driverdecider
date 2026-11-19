@@ -451,6 +451,8 @@ const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 
 for (const c of CARS) for (const r of c.rows) for (const [k, , f] of COST_PARTS) r["_" + k] = Math.round(f(r));
 const TYPICAL = Object.fromEntries(COST_PARTS.map(([k]) => [k, median(CARS.flatMap((c) => c.rows.map((r) => r["_" + k])))]));
 const COST_VIEW = "b"; // "a": bar and amounts; "b": also how each part compares with the typical car on the list
+// a number gets its unit; text such as "No rear seat" is shown as it is
+const unit = (v, u) => (typeof v === "number" ? v + " " + u : esc(v));
 const money = (n) => (typeof n === "number" ? "$" + Math.round(n).toLocaleString("en-US") : "—");
 const num = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : "—");
 const range = (a, f = money) => { const lo = Math.min(...a), hi = Math.max(...a); return lo === hi ? f(lo) : f(lo) + "–" + f(hi).replace("$", "$"); };
@@ -787,7 +789,7 @@ function cmpCell(it, f) {
   const isNum = ["money", "n", "num", "cr", "sale"].includes(kind);
   if (isNum) {
     const ns = vals.filter((v) => typeof v === "number");
-    if (!ns.length) return { html: kind === "cr" ? badge("NA", "") : "—", sig: "—" };
+    if (!ns.length) return kind === "cr" ? { html: badge("NA", ""), sig: "—" } : uniq.length ? { html: uniq.map(esc).join("<br>"), sig: uniq.join("|") } : { html: "—", sig: "—" };
     const lo = Math.min(...ns), hi = Math.max(...ns), fm = kind === "money" ? money : num;
     let html = lo === hi ? fm(lo) : fm(lo) + "–" + fm(hi);
     if (kind === "cr") html = ns.length === 1 ? badge(lo, crCls(lo, k.includes("satisfaction") ? 40 : 20)) : badge(lo + "–" + hi, crCls(Math.round((lo + hi) / 2), k.includes("satisfaction") ? 40 : 20));
@@ -834,8 +836,8 @@ const CAR_FIELDS = [
   ["Horsepower", "Horsepower", (v) => v + " hp"], ["Curb weight (lb)", "Curb weight", (v) => num(v) + " lb"],
   ["Power level", "Power level", (v) => badge(v, LEVEL[v]), true], ["Interior quality", "Interior quality"],
   ["Size", "Size"], ["Body style", "Body"],
-  ["Cargo (cu ft)", "Cargo", (v) => v + " cu ft"], ["Rear legroom (in)", "Rear legroom", (v) => v + " in"],
-  ["Turning circle (ft)", "Turning circle", (v) => v + " ft"],
+  ["Cargo (cu ft)", "Cargo", (v) => unit(v, "cu ft")], ["Rear legroom (in)", "Rear legroom", (v) => unit(v, "in")],
+  ["Turning circle (ft)", "Turning circle", (v) => unit(v, "ft")],
   ["Annual repair cost $", "Repairs per year", (v, c) => a(L.repairpal(c), money(v)) + '<span class="src">RepairPal</span>', true],
   ["Annual maintenance $", "Oil and tire rotations per year", (v) => money(v)],
   ...FEATS.map((f) => [f, f]),
