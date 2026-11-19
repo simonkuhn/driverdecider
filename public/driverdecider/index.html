@@ -12,7 +12,7 @@
 <style>
 /* Layout: a wordmark over a lane-line rule, a sticky strip of filter chips, then a wall of
    movie-poster cards (two across on an iPhone, three or four on a desktop) in sections with colored bars:
-   Highlights, Simon's picks, the rest, Banished.
+   My Picks, Simon's picks, the rest, Banished.
    Color: cool asphalt-tinted paper + ink, one road-sign green accent, gold for Simon's picks. */
 :root {
   --bg: #f2f3f1;
@@ -316,7 +316,7 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 
   <footer class="foot">
     <p>Prices are Kelley Blue Book private-party values in Very Good condition for San Francisco, read in November 2026. The 5-year cost adds California sales tax and license fees, fuel at 12,000 miles a year, and repairs and maintenance at Bay Area shop rates. Insurance is a Geico quote for one driver and is not in the 5-year cost. Number for sale is a rough nationwide Autotrader count.</p>
-    <p>Highlights and banished cars are kept in this browser only.</p>
+    <p>My Picks and banished cars are kept in this browser only.</p>
     <details><summary>Photo credits</summary><ul id="credits"></ul></details>
   </footer>
 </div>
@@ -491,7 +491,7 @@ function card(c, rows, mode) {
     </button>
     ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
     ${mode === "gone" ? `<button type="button" class="back" data-back="${c.id}">Bring back</button>` : ""}
-    ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${c.id}" aria-pressed="${hl}" title="${hl ? "Remove highlight" : "Highlight this car"}" aria-label="${hl ? "Remove highlight from" : "Highlight"} ${esc(c.title)}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${c.id}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
+    ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${c.id}" aria-pressed="${hl}" title="${hl ? "Remove from My Picks" : "Add to My Picks"}" aria-label="${hl ? "Remove " + esc(c.title) + " from My Picks" : "Add " + esc(c.title) + " to My Picks"}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${c.id}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
     <div class="info"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>${rows.length === 1 ? "1 version" : rows.length + " versions"} · 5-year cost from ${money(Math.min(...rows.map((r) => r["5-year cost $"])))}</small></div>
   </article>`;
 }
@@ -509,7 +509,7 @@ function section(id, title, items, mode) {
   if (!items.length) return "";
   const shut = !!closed[id];
   const note = id === "rest" && !saved.hl.length && !saved.ban.length
-    ? '<p class="hint">Tap the bookmark to highlight a car and keep it at the top. Tap the crossed-out eye to banish it from your list.</p>' : "";
+    ? '<p class="hint">Tap the bookmark to add a car to My Picks at the top. Tap the crossed-out eye to banish it from your list.</p>' : "";
   return `<section class="sect ${id}${shut ? " closed" : ""}" aria-labelledby="h-${id}">
     <div class="bar"><h2 id="h-${id}">${SECT_ICON[id] || ""}${esc(title)}</h2><span class="n">${items.length}</span>
       <button type="button" class="tog" data-tog="${id}" aria-expanded="${!shut}">${shut ? "Expand" : "Collapse"}</button></div>
@@ -525,11 +525,11 @@ function render() {
   }
   sorted(hls); sorted(picks); sorted(rest); sorted(gone);
   $("sections").innerHTML =
-    section("hl", "Highlights", hls) +
+    section("hl", "My Picks", hls) +
     section("picks", "Simon's picks", picks) +
     section("rest", picks.length || hls.length ? "The rest" : "All cars", rest) +
     section("gone", "Banished", gone, "gone");
-  renderJump([["hl", "Highlights", hls], ["picks", "Simon's picks", picks], ["rest", picks.length || hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
+  renderJump([["hl", "My Picks", hls], ["picks", "Simon's picks", picks], ["rest", picks.length || hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
   const shown = hls.length + picks.length + rest.length;
   $("empty").hidden = shown > 0;
   $("count").innerHTML = shown + " of " + (CARS.length - gone.length) + " cars" + (anyFilter() ? ' · <button type="button" class="clear" data-clear>Clear filters</button>' : "");
@@ -581,7 +581,7 @@ function setBan(id, v) {
 }
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-hl],[data-ban],[data-back],[data-open]"); if (!t) return;
-  if (t.dataset.hl) { const id = t.dataset.hl, v = !isHl(id); setHl(id, v); if (v) toast(nameOf(id) + " moved to Highlights", () => setHl(id, false)); if (dlg.open) openDetail(id); }
+  if (t.dataset.hl) { const id = t.dataset.hl, v = !isHl(id); setHl(id, v); if (v) toast(nameOf(id) + " added to My Picks", () => setHl(id, false)); if (dlg.open) openDetail(id); }
   else if (t.dataset.ban) { const id = t.dataset.ban, was = isHl(id); setBan(id, true); if (dlg.open) dlg.close();
     toast(nameOf(id) + " banished", () => { setBan(id, false); if (was) setHl(id, true); }); }
   else if (t.dataset.back) { setBan(t.dataset.back, false); toast(nameOf(t.dataset.back) + " is back in the lineup", () => setBan(t.dataset.back, true)); }
@@ -653,7 +653,7 @@ function openDetail(id, vi) {
         <span class="gen">${esc(c.gen)} · ${esc(yearsOf(rows))}</span>
         ${rows[0].Summary ? `<p class="sum">${esc(rows[0].Summary)}</p>` : ""}
         <div class="dacts">
-          <button type="button" class="hl${hl ? " on" : ""}" data-hl="${id}" aria-pressed="${hl}">${hl ? ICON.markOn + " Highlighted" : ICON.mark + " Highlight"}</button>
+          <button type="button" class="hl${hl ? " on" : ""}" data-hl="${id}" aria-pressed="${hl}">${hl ? ICON.markOn + " In My Picks" : ICON.mark + " Add to My Picks"}</button>
           <button type="button" data-ban="${id}">${ICON.ban} Banish</button>
         </div>
       </div>
