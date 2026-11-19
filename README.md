@@ -1,7 +1,7 @@
 # Driver Decider
 
 A one-page site that shows the used cars from the "First car comparison" sheet as cards, built for iPhone first.
-It is published with GitHub Pages and is meant to live at **zombe.es/driverdecider**.
+It is published with GitHub Pages and is meant to live at **driverdecider.zombe.es**.
 
 - One card per car generation, or one per model year with the By model / By year switch. Simon's picks carry a gold star.
 - Tap a card for every version (year and trim) with price, 5-year cost, insurance, MPG, safety and reliability ratings,
@@ -16,7 +16,7 @@ It is published with GitHub Pages and is meant to live at **zombe.es/driverdecid
 | Path | What it is |
 | --- | --- |
 | `web/page.html` | The page itself: HTML, CSS and JS in one file, no build step or framework. |
-| `site/` | What GitHub Pages publishes: `index.html` (made from `web/page.html`), `data.js`, `img/`. All paths are relative, so it works under `/driverdecider/`. |
+| `site/` | What GitHub Pages publishes: `index.html` (made from `web/page.html`), `data.js`, `img/`. |
 | `data/sheet-rows.json` | The Comparison sheet's cells, as read from the Claude Sheet. |
 | `tools/build_data.py` | Groups the sheet rows into generations and writes `site/data.js` and the resized photos. |
 | `tools/build_page.py` | Wraps `web/page.html` into `site/index.html`. |
@@ -32,14 +32,14 @@ It is published with GitHub Pages and is meant to live at **zombe.es/driverdecid
 ## Hosting on GitHub Pages (one time)
 
 1. In this repository: Settings > Pages > Build and deployment > Source: **GitHub Actions**.
-   Without a custom domain the site is at `https://simonkuhn.github.io/driverdecider/`.
-2. To serve it at `zombe.es/driverdecider`, give the account's user site the custom domain `zombe.es`.
-   A project site like this one then appears under that domain at `/driverdecider/` automatically.
-   - Create the public repository `simonkuhn.github.io` with an `index.html`, and in its Settings > Pages
-     publish from the `main` branch and set Custom domain to `zombe.es`.
-   - At the DNS host for zombe.es, add these records for the apex (`zombe.es`):
-     - A: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-     - AAAA (optional, for IPv6): `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`
-     - CNAME `www` to `simonkuhn.github.io` (optional, so www.zombe.es redirects to zombe.es)
-   - Once the DNS check passes, tick **Enforce HTTPS** in the user site's Pages settings.
-   - Recommended: verify zombe.es under your GitHub account's Settings > Pages, so no one else can claim it.
+   The first push to `main` (or Actions > Deploy to GitHub Pages > Run workflow) publishes it at
+   `https://simonkuhn.github.io/driverdecider/`.
+2. At the DNS host for zombe.es, add one record: CNAME `driverdecider` to `simonkuhn.github.io`
+   (the target has no `/driverdecider` part and no `https://`).
+3. Back in Settings > Pages, set Custom domain to `driverdecider.zombe.es` and save. When the DNS check passes,
+   tick **Enforce HTTPS** (the certificate can take up to an hour to appear).
+4. Recommended: verify zombe.es under your GitHub account's Settings > Pages > Verified domains (a TXT record),
+   so no one else can point a GitHub Pages site at it.
+
+With a custom domain set in Settings, an Actions-deployed site needs no `CNAME` file. All paths in `site/` are
+relative, so the page works both at `simonkuhn.github.io/driverdecider/` and at `driverdecider.zombe.es`.
