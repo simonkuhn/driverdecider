@@ -323,8 +323,8 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
       <select id="fuel"><option value="">Any fuel type</option></select>
       <label class="sr" for="sort">Sort</label>
       <select id="sort">
-        <option value="price">Sort by: Cheapest</option>
         <option value="cost">Sort by: Lowest 5-year cost</option>
+        <option value="price">Sort by: Cheapest</option>
         <option value="mpg">Sort by: Best MPG</option>
         <option value="safety">Sort by: Safest</option>
         <option value="rel">Sort by: Most reliable</option>
@@ -431,7 +431,7 @@ const GROUPS = [
   { id: "rel", chips: [{ v: "rel", label: "Reliability: High", test: (r) => r["Reliability (High/Med/Low)"] === "High" }] },
 ];
 const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
-const ui = { sort: "price", max: "", type: "", drive: "", fuel: "", view: "model" };
+const ui = { sort: "cost", max: "", type: "", drive: "", fuel: "", view: "model" };
 try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
 const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
