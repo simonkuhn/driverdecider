@@ -127,6 +127,11 @@ button { font: inherit; color: inherit; }
 
 /* sections: a bar with a colored left edge, an icon, a count and a Collapse button */
 .sect { margin-top: 18px; scroll-margin-top: 12px; }
+/* desktop: the filter bar stays at the top while the cars scroll under it */
+@media (min-width: 760px) {
+  .filters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; }
+  .sect { scroll-margin-top: calc(var(--fh, 0px) + 12px); }
+}
 .bar { margin: 0 0 14px; display: flex; align-items: center; gap: 4px 12px; padding: 10px 10px 10px 14px; border-radius: 10px;
   border-left: 8px solid var(--accent); background: color-mix(in srgb, var(--line) 55%, var(--surface)); }
 .bar h2 { margin: 0; display: flex; align-items: center; gap: 9px; font: 400 1.7rem/1 var(--display); text-transform: uppercase; letter-spacing: .01em; min-width: 0; }
@@ -851,6 +856,8 @@ for (const c of CARS) for (const [k, kind] of [["credExt", "outside"], ["credInt
 $("credits").innerHTML = [...new Set(cr)].join("");
 
 render();
+// keep section jumps clear of the sticky filter bar
+try { const f = document.querySelector(".filters"); new ResizeObserver(() => document.documentElement.style.setProperty("--fh", f.offsetHeight + "px")).observe(f); } catch {}
 })();
 </script>
 
