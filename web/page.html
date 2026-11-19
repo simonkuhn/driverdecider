@@ -109,11 +109,12 @@ button { font: inherit; color: inherit; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 0 1 auto; max-width: 100%; }
 @media (max-width: 600px) {
-  .fold { display: block; flex: none; font: 600 .86rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
-  .fold.on { background: var(--accent-fill); color: var(--accent-ink); border-color: var(--accent-fill); }
+  .fold { display: inline-flex; align-items: center; gap: 7px; flex: none; font: 600 .86rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
+  .fold .funnel { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+  .fold.on .funnel { fill: var(--accent); stroke: var(--accent); }
   .row2.folded > select, .row2.folded > .count { display: none; }
 }
-@media (max-width: 600px) { .seg { flex: 1 1 0; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type, .row2 #sort { flex-basis: 100%; } .count { flex: 1 1 calc(50% - 8px); margin-left: 0; padding-left: 4px; white-space: normal; } }
+@media (max-width: 600px) { .seg { flex: 1 1 0; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type, .row2 #sort { flex-basis: 100%; } .count { flex: 1 1 calc(50% - 8px); margin-left: 0; padding-right: 4px; white-space: normal; text-align: right; } }
 @media (min-width: 601px) { .fold { display: none; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* desktop: a big By model / By year switch on the left, the seven dropdowns and the count in a 4-column, 2-row grid beside it */
@@ -122,7 +123,7 @@ button { font: inherit; color: inherit; }
   .row2 > .seg { grid-row: span 2; display: flex; border-radius: 10px; padding: 3px; gap: 3px; }
   .row2 > .seg button { flex: 1; font: 600 1.05rem var(--body); padding: 0 22px; border-radius: 8px; }
   .row2 select { width: 100%; max-width: none; min-height: 40px; font-size: .92rem; }
-  .row2 .count { margin-left: 0; align-self: center; padding-left: 4px; white-space: normal; }
+  .row2 .count { margin-left: 0; align-self: center; padding-right: 4px; white-space: normal; text-align: right; }
   .row2 #type { order: 1; } .row2 #drive { order: 2; } .row2 #fuel { order: 3; } .row2 #sort { order: 4; } .row2 #safe { order: 5; } .row2 #rel { order: 6; } .row2 #max { order: 7; } .row2 .count { order: 8; }
 }
 .clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
@@ -514,7 +515,8 @@ $("sort").value = ui.sort; $("max").value = ui.max;
 // iPhone: the filter bar folds down to just By model / By year
 const setFold = () => { const f = !!ui.fold, n = [ui.type, ui.drive, ui.fuel, ui.safe, ui.rel, ui.max].filter(Boolean).length;
   $("fold").closest(".row2").classList.toggle("folded", f); $("fold").setAttribute("aria-expanded", String(!f));
-  $("fold").textContent = f ? "Show filters" + (n ? " · " + n : "") : "Hide filters"; $("fold").classList.toggle("on", f && n > 0); };
+  $("fold").innerHTML = `<span>${f ? "Show filters" : "Hide filters"}${n ? " · " + n : ""}</span><svg class="funnel" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 4.5h17l-6.5 8v6l-4 2v-8z"/></svg>`;
+  $("fold").classList.toggle("on", n > 0); };
 $("fold").addEventListener("click", () => { ui.fold = !ui.fold; saveUi(); setFold(); });
 for (const id of ["safe", "rel"]) { if (!["", "High", "Med"].includes(ui[id])) ui[id] = ""; $(id).value = ui[id]; $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); }); }
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
