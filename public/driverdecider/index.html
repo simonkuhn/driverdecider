@@ -283,6 +283,11 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .facts { margin: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--line); }
 .facts > div { display: grid; grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr); gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
 .facts dt { color: var(--muted); font-size: .86rem; }
+.facts .info { all: unset; cursor: pointer; display: inline-grid; place-items: center; width: 22px; height: 22px; margin: -4px 0 -4px 4px; vertical-align: middle; color: var(--muted); border-radius: 50%; }
+.facts .info svg { width: 16px; height: 16px; }
+.facts .info[aria-expanded="true"], .facts .info:hover { color: var(--accent); }
+.facts .info:focus-visible { outline: 2px solid var(--accent); }
+.facts .tipx { grid-column: 1 / -1; margin: 2px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); font-size: .84rem; line-height: 1.45; }
 .facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .facts dd a { text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
 .facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
@@ -414,6 +419,7 @@ const hlKey = (key) => isHl(key) || isHl(modelOf(key)), banKey = (key) => isBan(
 
 // ---- icons ----
 const ICON = {
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.6" r=".6" fill="currentColor"/></svg>',
   mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
   markOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
   ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>',
@@ -772,9 +778,9 @@ const ROW_FIELDS = (c, r) => {
   const y = r.Year, sale = r["Number for sale (Autotrader)"];
   return [
     ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
-    ["5-year cost", money(r["5-year cost $"])],
+    ["5-year cost", money(r["5-year cost $"]), costTip(r)],
     ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet"],
-    ["Est. miles", num(r["Est. miles"])],
+    ["Est. miles", num(r["Est. miles"]), milesTip(r)],
     ["MPG", `${r["Combined MPG"]} combined · ${money(r["Annual fuel $"])} a year`],
     ["Safety level", badge(r["Safety level (High/Med/Low)"], LEVEL[r["Safety level (High/Med/Low)"]])],
     ["NHTSA", r["NHTSA stars"] ? a(L.nhtsa(c, y), badge(r["NHTSA stars"], nhtsaCls(r["NHTSA stars"]))) : "—"],
@@ -785,7 +791,16 @@ const ROW_FIELDS = (c, r) => {
     ["Number for sale", typeof sale === "number" ? a(L.autotrader(c, y), badge(num(sale) + " · " + saleLevel(sale), saleCls(sale))) : "—"],
   ];
 };
-const dl = (pairs) => `<dl class="facts">${pairs.filter((p) => p[1] !== "" && p[1] != null).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
+// a third item is an explanation, opened by the (i) button beside the label
+const dl = (pairs) => `<dl class="facts">${pairs.filter((p) => p[1] !== "" && p[1] != null).map(([k, v, tip]) =>
+  `<div><dt>${esc(k)}${tip ? `<button type="button" class="info" aria-expanded="false" aria-label="What goes into ${esc(k)}">${ICON.info}</button>` : ""}</dt><dd>${v}</dd>${tip ? `<p class="tipx" hidden>${esc(tip)}</p>` : ""}</div>`).join("")}</dl>`;
+const costTip = (r) => {
+  const prem = /premium/.test(r["Gas/Hybrid"] || "");
+  return `The price, plus 8.625% sales tax, plus five years of: the California vehicle license fee (0.65% of the price a year), ` +
+    `fuel for 12,000 miles a year at ${prem ? "$6.15 a gallon for premium" : "$5.75 a gallon"} (${money(r["Annual fuel $"])} a year), ` +
+    `and repairs (RepairPal) plus oil changes and tire rotations (${money((r["Annual repair cost $"] || 0) + (r["Annual maintenance $"] || 0))} a year) with 30% added for an older car. Insurance is not included.`;
+};
+const milesTip = (r) => { const y = Math.round(r["Est. miles"] / 12000); return `Estimated at 12,000 miles a year: ${y} year${y === 1 ? "" : "s"} old × 12,000 miles = ${num(r["Est. miles"])} miles.`; };
 const vlabel = (r) => r.variant ? `${r.Year} ${r.variant}` : String(r.Year);
 let curVar = {};
 function openDetail(key, vi) {
@@ -860,6 +875,8 @@ function openDetail(key, vi) {
 }
 dlg.addEventListener("click", (e) => {
   if (e.target === dlg) { dlg.close(); return; }
+  const info = e.target.closest(".info");
+  if (info) { const t = info.closest("div").querySelector(".tipx"), open = t.hidden; t.hidden = !open; info.setAttribute("aria-expanded", String(open)); return; }
   const b = e.target.closest("[data-vi]"); if (!b) return;
   const id = dlg.dataset.car;
   if (id) { const top = dlg.scrollTop; openDetail(id, +b.dataset.vi); dlg.scrollTop = top; dlg.querySelector(`[data-vi="${b.dataset.vi}"]`)?.focus(); }
