@@ -514,7 +514,7 @@ $("sort").value = ui.sort; $("max").value = ui.max;
 // iPhone: the filter bar folds down to just By model / By year
 const setFold = () => { const f = !!ui.fold, n = [ui.type, ui.drive, ui.fuel, ui.safe, ui.rel, ui.max].filter(Boolean).length;
   $("fold").closest(".row2").classList.toggle("folded", f); $("fold").setAttribute("aria-expanded", String(!f));
-  $("fold").textContent = f ? "Filters" + (n ? " · " + n : "") : "Hide filters"; $("fold").classList.toggle("on", f && n > 0); };
+  $("fold").textContent = f ? "Show filters" + (n ? " · " + n : "") : "Hide filters"; $("fold").classList.toggle("on", f && n > 0); };
 $("fold").addEventListener("click", () => { ui.fold = !ui.fold; saveUi(); setFold(); });
 for (const id of ["safe", "rel"]) { if (!["", "High", "Med"].includes(ui[id])) ui[id] = ""; $(id).value = ui[id]; $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); }); }
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
