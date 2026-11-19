@@ -546,7 +546,15 @@ const NHTSA_MODEL = { ilx: "ILX", civic: "CIVIC", accord: "ACCORD", miata: "MX-5
 const CG = { ilx: "d2137", civic: "d586", accord: "d585", miata: "d221", mazda3s: "d214", mazda3h: "d214", mazda6: "d215", cooper: "d436", coopers: "d436",
   im: "d2319", impreza4: "d375", impreza5: "d375", legacy: "d378", yaris: "d827", corolla10: "d295", corolla11: "d295", prius: "d15", priusc: "d2127",
   beetle: "d201", jetta: "d200", passat: "d202", golf: "d198" };
+// carsurvey.org owner reviews: model slug, and the years that have their own page (checked 2026-11-19); other years link to the model page
+const CS = { ilx: ["acura/ilx", [2013, 2014]], civic: ["honda/civic", [2013, 2014, 2015]], accord: ["honda/accord", [2014, 2015]],
+  miata: ["mazda/mx5", [2011]], mazda3s: ["mazda/3", [2015, 2016]], mazda3h: ["mazda/3", [2015, 2016]], mazda6: ["mazda/6", [2014, 2015, 2016]],
+  cooper: ["bmw/mini", []], coopers: ["bmw/mini", []], impreza4: ["subaru/impreza", [2014]], impreza5: ["subaru/impreza", []],
+  legacy: ["subaru/legacy", [2015]], yaris: ["toyota/yaris", [2012, 2013, 2018]], corolla10: ["toyota/corolla", [2012, 2013]],
+  corolla11: ["toyota/corolla", [2014]], prius: ["toyota/prius", [2014]], priusc: ["toyota/prius_c", []], beetle: ["volkswagen/beetle", [2014]],
+  jetta: ["volkswagen/jetta", [2015, 2016]], passat: ["volkswagen/passat", [2015, 2016, 2017]], golf: ["volkswagen/golf", [2015, 2016, 2017]] };
 const L = {
+  carsurvey: (c, y) => { const m = CS[c.id]; if (!m) return null; const yr = m[1].includes(+y); return { href: `https://www.carsurvey.org/reviews/${m[0]}/${yr ? y + "/" : ""}`, text: yr ? `Owner reviews, ${y} (Carsurvey)` : "Owner reviews, all years (Carsurvey)" }; },
   kbb: (c, y) => `https://www.kbb.com/${c.make}/${c.kbbModel}/${y}/`,
   nhtsa: (c, y) => NHTSA_MODEL[c.id] ? `https://www.nhtsa.gov/vehicle/${y}/${c.make.toUpperCase()}/${encodeURIComponent(NHTSA_MODEL[c.id])}` : "",
   iihs: (c, y, r) => { if (!c.iihs) return ""; let s = c.iihs; if (c.make === "subaru" && c.model === "impreza" && r && r["Body style"] === "Hatchback") s = "subaru/impreza-4-door-wagon"; return `https://www.iihs.org/ratings/vehicle/${s}/${y}`; },
@@ -1024,6 +1032,7 @@ function openDetail(key, vi) {
           ${L.iihs(c, r.Year, r) ? `<a class="ext" href="${esc(L.iihs(c, r.Year, r))}" target="_blank" rel="noopener">IIHS ratings</a>` : ""}
           <a class="ext" href="${esc(L.cr(c, r.Year))}" target="_blank" rel="noopener">Consumer Reports</a>
           <a class="ext" href="${esc(L.repairpal(c))}" target="_blank" rel="noopener">RepairPal</a>
+          ${(() => { const k = L.carsurvey(c, r.Year); return k ? `<a class="ext" href="${esc(k.href)}" target="_blank" rel="noopener">${esc(k.text)}</a>` : ""; })()}
         </div>
       </section>
     </div>`;
