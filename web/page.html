@@ -27,6 +27,8 @@
   --mast-bg: var(--road); --mast-ink: #f5c542; --mast-sub: #c9cdc8; --mast-pad: 18px 16px 30px; --lane-in: 16px; --lane-low: 10px;
   /* section bars: asphalt in light mode too */
   --bar-bg: var(--road); --bar-hl-bg: var(--road); --bar-ink: #eef0ee; --bar-sub: #b9bfc3; --bar-icon: #f5c542; --bar-btn: transparent; --bar-btn-line: #8d959b; --bar-gone: #8d959b; --bar-edge: #f5c542;
+  /* 5-year cost breakdown: buying, fuel, repairs */
+  --c-buy: #7b848b; --c-fuel: #e3a900; --c-fix: #3b82c4;
   --stub: #f4efe2;
   --stub-ink: #382c14;
   --shadow: 0 1px 2px rgb(23 26 28 / .06), 0 6px 18px rgb(23 26 28 / .08);
@@ -46,7 +48,7 @@
     --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
     --road: #33383c; --accent: #f5c542; --accent-fill: #f5c542; --accent-ink: #241a00; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
     --mast-bg: transparent; --mast-ink: var(--accent); --mast-sub: var(--muted); --mast-pad: 0 0 24px; --lane-in: 0px; --lane-low: 0px;
-    --bar-bg: color-mix(in srgb, var(--line) 55%, var(--surface)); --bar-hl-bg: var(--bar-bg); --bar-ink: var(--ink); --bar-sub: var(--muted); --bar-icon: var(--accent); --bar-btn: var(--surface); --bar-btn-line: var(--muted); --bar-gone: var(--muted); --bar-edge: var(--accent);
+    --bar-bg: color-mix(in srgb, var(--line) 55%, var(--surface)); --bar-hl-bg: var(--bar-bg); --bar-ink: var(--ink); --bar-sub: var(--muted); --bar-icon: var(--accent); --bar-btn: var(--surface); --bar-btn-line: var(--muted); --bar-gone: var(--muted); --bar-edge: var(--accent); --c-buy: #8d959b; --c-fuel: #f5c542; --c-fix: #6aaee8;
     --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
     --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
     --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -58,7 +60,7 @@
   --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
   --road: #33383c; --accent: #f5c542; --accent-fill: #f5c542; --accent-ink: #241a00; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
     --mast-bg: transparent; --mast-ink: var(--accent); --mast-sub: var(--muted); --mast-pad: 0 0 24px; --lane-in: 0px; --lane-low: 0px;
-    --bar-bg: color-mix(in srgb, var(--line) 55%, var(--surface)); --bar-hl-bg: var(--bar-bg); --bar-ink: var(--ink); --bar-sub: var(--muted); --bar-icon: var(--accent); --bar-btn: var(--surface); --bar-btn-line: var(--muted); --bar-gone: var(--muted); --bar-edge: var(--accent);
+    --bar-bg: color-mix(in srgb, var(--line) 55%, var(--surface)); --bar-hl-bg: var(--bar-bg); --bar-ink: var(--ink); --bar-sub: var(--muted); --bar-icon: var(--accent); --bar-btn: var(--surface); --bar-btn-line: var(--muted); --bar-gone: var(--muted); --bar-edge: var(--accent); --c-buy: #8d959b; --c-fuel: #f5c542; --c-fix: #6aaee8;
   --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
   --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
   --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -201,7 +203,7 @@ button { font: inherit; color: inherit; }
 .cmp td small { display: block; color: var(--muted); font-size: .74rem; }
 
 .cmp tbody tr:last-child > * { border-bottom: 0; }
-@media (max-width: 600px) { .cmp tbody th { width: 92px; min-width: 92px; max-width: 92px; padding-left: 8px; padding-right: 6px; font-size: .82rem; } .cmp td { min-width: 124px; } }
+@media (max-width: 600px) { .cmp tbody th { width: 92px; min-width: 92px; max-width: 92px; padding-left: 8px; padding-right: 6px; font-size: .82rem; } .cmp tr.sub th { padding-left: 14px; } .cmp td { min-width: 124px; } }
 .bar .clear + .tog { margin-left: 0; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 22px 18px; }
@@ -320,6 +322,21 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .facts .tipx { grid-column: 1 / -1; margin: 2px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); font-size: .84rem; line-height: 1.45; }
 .facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .facts dd a { text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
+.costbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 8px 0 6px; background: var(--line); }
+.costbar i { display: block; height: 100%; }
+.costbar i + i { border-left: 2px solid var(--bg); }
+.costparts { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: .84rem; }
+.costparts li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.costparts .sw { width: 10px; height: 10px; border-radius: 3px; align-self: center; }
+.costparts .amt { font-variant-numeric: tabular-nums; text-align: right; }
+.costparts .vs { grid-column: 2 / -1; margin-top: -2px; color: var(--muted); font-size: .78rem; }
+.costparts .vs.up { color: var(--r-red-ink); } .costparts .vs.down { color: var(--r-green-ink); }
+.costtog { all: unset; cursor: pointer; display: flex; width: fit-content; align-items: center; gap: 4px; margin-top: 4px; color: var(--muted); font-size: .8rem; font-weight: 600; }
+.costtog svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; transition: transform .15s; }
+.costtog[aria-expanded="true"] svg { transform: rotate(180deg); }
+.costtog:hover { color: var(--accent); } .costtog:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+.costnote { margin: 6px 0 0; color: var(--muted); font-size: .76rem; line-height: 1.35; }
+.cmp tr.sub th { padding-left: 20px; overflow-wrap: anywhere; font-weight: 400; color: var(--muted); }
 .facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
 .big { font: 400 1.6rem/1 var(--display); letter-spacing: .02em; }
 .shop { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: var(--accent-fill);
@@ -429,6 +446,22 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 const CARS = window.CARS || [];
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// 5-year cost split into its three parts (they add up to the sheet's 5-year cost)
+const COST_PARTS = [
+  ["buy", "Price, tax and fees", (r) => r["KBB private party $"] * (1.08625 + 5 * 0.0065)],
+  ["fuel", "Fuel", (r) => 5 * (r["Annual fuel $"] || 0)],
+  ["fix", "Repairs and maintenance", (r) => 5 * 1.3 * ((r["Annual repair cost $"] || 0) + (r["Annual maintenance $"] || 0))],
+];
+const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+for (const c of CARS) for (const r of c.rows) for (const [k, , f] of COST_PARTS) r["_" + k] = Math.round(f(r));
+// the middle of your list: the median of every model year you haven't banished
+const typical = () => {
+  const rows = CARS.flatMap((c) => c.rows.filter((r) => !banKey(c.id) && !banKey(c.id + "@" + r.Year)));
+  return { n: rows.length, ...Object.fromEntries(COST_PARTS.map(([k]) => [k, rows.length ? median(rows.map((r) => r["_" + k])) : 0])) };
+};
+const COST_VIEW = "b"; // "a": bar and amounts; "b": also how each part compares with the middle of your list
+// a number gets its unit; text such as "No rear seat" is shown as it is
+const unit = (v, u) => (typeof v === "number" ? v + " " + u : esc(v));
 const money = (n) => (typeof n === "number" ? "$" + Math.round(n).toLocaleString("en-US") : "—");
 const num = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : "—");
 const range = (a, f = money) => { const lo = Math.min(...a), hi = Math.max(...a); return lo === hi ? f(lo) : f(lo) + "–" + f(hi).replace("$", "$"); };
@@ -475,13 +508,17 @@ const CR_MODEL = { mazda3: "3", mazda6: "6" };
 const NHTSA_MODEL = { ilx: "ILX", civic: "CIVIC", accord: "ACCORD", miata: "MX-5", mazda3s: "MAZDA3", mazda3h: "MAZDA3", mazda6: "MAZDA6",
   cooper: "COOPER HARDTOP", coopers: "COOPER S HARDTOP", impreza4: "IMPREZA", impreza5: "IMPREZA", legacy: "LEGACY", yaris: "YARIS",
   corolla10: "COROLLA", corolla11: "COROLLA", prius: "PRIUS", priusc: "PRIUS C", beetle: "BEETLE", jetta: "JETTA", passat: "PASSAT", golf: "GOLF" };
+const CG = { ilx: "d2137", civic: "d586", accord: "d585", miata: "d221", mazda3s: "d214", mazda3h: "d214", mazda6: "d215", cooper: "d436", coopers: "d436",
+  im: "d2319", impreza4: "d375", impreza5: "d375", legacy: "d378", yaris: "d827", corolla10: "d295", corolla11: "d295", prius: "d15", priusc: "d2127",
+  beetle: "d201", jetta: "d200", passat: "d202", golf: "d198" };
 const L = {
   kbb: (c, y) => `https://www.kbb.com/${c.make}/${c.kbbModel}/${y}/`,
   nhtsa: (c, y) => NHTSA_MODEL[c.id] ? `https://www.nhtsa.gov/vehicle/${y}/${c.make.toUpperCase()}/${encodeURIComponent(NHTSA_MODEL[c.id])}` : "",
   iihs: (c, y, r) => { if (!c.iihs) return ""; let s = c.iihs; if (c.make === "subaru" && c.model === "impreza" && r && r["Body style"] === "Hatchback") s = "subaru/impreza-4-door-wagon"; return `https://www.iihs.org/ratings/vehicle/${s}/${y}`; },
   cr: (c, y) => `https://www.consumerreports.org/cars/${c.make}/${CR_MODEL[c.model] || c.model}/${y}/overview/`,
   repairpal: (c) => `https://repairpal.com/reliability/${c.make}/${c.model}`,
-  autotrader: (c, y1, y2) => `https://www.autotrader.com/cars-for-sale/used-cars/${c.make}/${c.model}/san-francisco-ca?startYear=${y1}&endYear=${y2 || y1}&searchRadius=100`,
+  // CarGurus model ids (from its car picker); search within 100 miles of San Francisco
+  cargurus: (c, y1, y2) => `https://www.cargurus.com/search?zip=94103&distance=100&entityId=${CG[c.id]}&startYear=${y1}&endYear=${y2 || y1}`,
   geico: () => "https://www.geico.com/auto-insurance/",
 };
 const a = (href, text) => href ? `<a class="ext" href="${esc(href)}" target="_blank" rel="noopener">${text}</a>` : text;
@@ -585,7 +622,7 @@ function card(it, mode) {
   const prices = rows.map((r) => r["KBB private party $"]);
   const mpg = range(rows.map((r) => r["Combined MPG"]), String);
   const pick = c.rows.some((r) => r["Simon's pick"] === "Yes");
-  const safety = levelsLine(rows, "Safety level (High/Med/Low)"), rel = levelsLine(rows, "Reliability (High/Med/Low)");
+  const safety = levelsLine(rows, "Safety level (High/Med/Low)"), rel = levelsLine(rows, "Reliability (High/Med/Low)"), power = levelsLine(rows, "Power level");
   const nV = rows.length, years = yearsOf(rows);
   const hl = hlKey(key);
   const long = c.title.length > 8 ? " long" : "";
@@ -599,7 +636,7 @@ function card(it, mode) {
         <span class="ttl${long}">${esc(c.title)}</span>
         <span class="gen">${esc(years)}</span>
         ${summary ? `<span class="tag">${esc(summary)}</span>` : ""}
-        <span class="billing">${esc(mpg)} MPG · Safety ${esc(safety)} · Reliability ${esc(rel)}</span>
+        <span class="billing">${esc(mpg)} MPG · Safety ${esc(safety)} · Reliability ${esc(rel)}${power ? " · Power " + esc(power) : ""}</span>
       </span>
     </button>
     ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
@@ -741,7 +778,7 @@ document.addEventListener("click", (e) => {
 
 // ---- My Picks compare table ----
 const CMP = [
-  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ["Insurance a year", "Annual insurance $", "money", -1],
+  ["Cost", [["Price", "KBB private party $", "money", -1], ["5-year cost", "5-year cost $", "money", -1], ...COST_PARTS.map(([k]) => [{ buy: "Price, tax, fees", fuel: "Fuel, 5 yrs", fix: "Repairs, 5 yrs" }[k], "_" + k, "money", -1, "sub"]), ["Insurance a year", "Annual insurance $", "money", -1],
     ["Fuel a year", "Annual fuel $", "money", -1], ["Repairs a year", "Annual repair cost $", "money", -1], ["Combined MPG", "Combined MPG", "n", 1], ["Est. miles", "Est. miles", "num", -1]]],
   ["Safety", [["Safety level", "Safety level (High/Med/Low)", "level"], ["NHTSA", "NHTSA stars", "nhtsa"], ["IIHS", "IIHS award", "iihs"]]],
   ["Reliability", [["Reliability", "Reliability (High/Med/Low)", "level"], ["CR reliability (0–100)", "CR reliability (0-100)", "cr", 1], ["CR owner satisfaction (0–100)", "CR owner satisfaction (0-100)", "cr", 1]]],
@@ -751,6 +788,10 @@ const CMP = [
   ["Features", ["Bluetooth", "Backup camera", "Cruise control", "Heated seats", "Keyless entry", "Push-button start", "USB/aux input"].map((f) => [f, f])],
   ["For sale", [["Number for sale", "Number for sale (Autotrader)", "sale", 1]]],
 ];
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-costcmp]")) return;
+  ui.costOpen = !ui.costOpen; saveUi(); render(); document.querySelector("[data-costcmp]")?.focus();
+});
 const cmpBar = (list3) => `<div class="cmpbar"><div class="seg" role="group" aria-label="Show My Picks as">
   <button type="button" data-cmp="cards" aria-pressed="${ui.cmp !== "table"}">Cards</button><button type="button" data-cmp="table" aria-pressed="${ui.cmp === "table"}">Compare</button></div>
   ${ui.cmp === "table" ? `<button type="button" class="same" data-same aria-pressed="${!!ui.same}">Only differences</button><span class="note">Rows where your picks match are dimmed. Green is the best of your picks${list3 ? ", red text the worst" : ""}.</span>` : ""}</div>`;
@@ -761,7 +802,7 @@ function cmpCell(it, f) {
   const isNum = ["money", "n", "num", "cr", "sale"].includes(kind);
   if (isNum) {
     const ns = vals.filter((v) => typeof v === "number");
-    if (!ns.length) return { html: kind === "cr" ? badge("NA", "") : "—", sig: "—" };
+    if (!ns.length) return kind === "cr" ? { html: badge("NA", ""), sig: "—" } : uniq.length ? { html: uniq.map(esc).join("<br>"), sig: uniq.join("|") } : { html: "—", sig: "—" };
     const lo = Math.min(...ns), hi = Math.max(...ns), fm = kind === "money" ? money : num;
     let html = lo === hi ? fm(lo) : fm(lo) + "–" + fm(hi);
     if (kind === "cr") html = ns.length === 1 ? badge(lo, crCls(lo, k.includes("satisfaction") ? 40 : 20)) : badge(lo + "–" + hi, crCls(Math.round((lo + hi) / 2), k.includes("satisfaction") ? 40 : 20));
@@ -783,6 +824,8 @@ function compareTable(list) {
   for (const [g, fields] of CMP) {
     let rowsHtml = "";
     for (const f of fields) {
+      if (f[4] === "sub" && !ui.costOpen) continue;
+      if (ui.costOpen && (f[1] === "Annual fuel $" || f[1] === "Annual repair cost $")) continue; // shown as 5-year parts instead
       const cells = list.map((it) => cmpCell(it, f));
       if (cells.every((x) => x.sig === "—")) continue;
       const same = new Set(cells.map((x) => x.sig)).size === 1;
@@ -792,7 +835,7 @@ function compareTable(list) {
         const vs = cells.map((x) => x.v).filter((v) => v != null);
         if (vs.length > 1) { best = f[3] > 0 ? Math.max(...vs) : Math.min(...vs); worst = f[3] > 0 ? Math.min(...vs) : Math.max(...vs); if (best === worst) best = worst = null; if (vs.length < 3) worst = null; }
       }
-      rowsHtml += `<tr class="${same ? "same" : "diff"}"><th scope="row">${esc(f[0])}</th>${cells.map((x) =>
+      rowsHtml += `<tr class="${same ? "same" : "diff"}${f[4] ? " " + f[4] : ""}"><th scope="row">${esc(f[0])}${f[1] === "5-year cost $" ? `<button type="button" class="costtog" data-costcmp aria-expanded="${!!ui.costOpen}"><span>Breakdown</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>` : ""}</th>${cells.map((x) =>
         `<td class="${x.v != null && x.v === best ? "best" : x.v != null && x.v === worst ? "worst" : ""}">${x.html}</td>`).join("")}</tr>`;
     }
     if (rowsHtml) body += `<tr class="grp"><th scope="rowgroup">${esc(g)}</th><td colspan="${list.length}"></td></tr>` + rowsHtml;
@@ -808,8 +851,8 @@ const CAR_FIELDS = [
   ["Horsepower", "Horsepower", (v) => v + " hp"], ["Curb weight (lb)", "Curb weight", (v) => num(v) + " lb"],
   ["Power level", "Power level", (v) => badge(v, LEVEL[v]), true], ["Interior quality", "Interior quality"],
   ["Size", "Size"], ["Body style", "Body"],
-  ["Cargo (cu ft)", "Cargo", (v) => v + " cu ft"], ["Rear legroom (in)", "Rear legroom", (v) => v + " in"],
-  ["Turning circle (ft)", "Turning circle", (v) => v + " ft"],
+  ["Cargo (cu ft)", "Cargo", (v) => unit(v, "cu ft")], ["Rear legroom (in)", "Rear legroom", (v) => unit(v, "in")],
+  ["Turning circle (ft)", "Turning circle", (v) => unit(v, "ft")],
   ["Annual repair cost $", "Repairs per year", (v, c) => a(L.repairpal(c), money(v)) + '<span class="src">RepairPal</span>', true],
   ["Annual maintenance $", "Oil and tire rotations per year", (v) => money(v)],
   ...FEATS.map((f) => [f, f]),
@@ -820,7 +863,7 @@ const ROW_FIELDS = (c, r) => {
   const y = r.Year, sale = r["Number for sale (Autotrader)"];
   return [
     ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
-    ["5-year cost", money(r["5-year cost $"]), costTip(r)],
+    ["5-year cost", money(r["5-year cost $"]) + costBreak(r), costTip(r)],
     ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet"],
     ["Est. miles", num(r["Est. miles"]), milesTip(r)],
     ["MPG", `${r["Combined MPG"]} combined · ${money(r["Annual fuel $"])} a year`],
@@ -830,12 +873,25 @@ const ROW_FIELDS = (c, r) => {
     ["Reliability", badge(r["Reliability (High/Med/Low)"], LEVEL[r["Reliability (High/Med/Low)"]])],
     ["CR reliability (0–100)", a(L.cr(c, y), badge(typeof r["CR reliability (0-100)"] === "number" ? r["CR reliability (0-100)"] : "NA", crCls(r["CR reliability (0-100)"], 20)))],
     ["CR owner satisfaction (0–100)", a(L.cr(c, y), badge(typeof r["CR owner satisfaction (0-100)"] === "number" ? r["CR owner satisfaction (0-100)"] : "NA", crCls(r["CR owner satisfaction (0-100)"], 40)))],
-    ["Number for sale", typeof sale === "number" ? a(L.autotrader(c, y), badge(num(sale) + " · " + saleLevel(sale), saleCls(sale))) : "—"],
+    ["Number for sale", typeof sale === "number" ? a(L.cargurus(c, y), badge(num(sale) + " · " + saleLevel(sale), saleCls(sale))) : "—"],
   ];
 };
 // a third item is an explanation, opened by the (i) button beside the label
 const dl = (pairs) => `<dl class="facts">${pairs.filter((p) => p[1] !== "" && p[1] != null).map(([k, v, tip]) =>
   `<div><dt>${esc(k)}${tip ? `<button type="button" class="info" aria-expanded="false" aria-label="What goes into ${esc(k)}">${ICON.info}</button>` : ""}</dt><dd>${v}</dd>${tip ? `<p class="tipx" hidden>${esc(tip)}</p>` : ""}</div>`).join("")}</dl>`;
+function costBreak(r) {
+  const TYPICAL = typical();
+  const tot = COST_PARTS.reduce((s, [k]) => s + r["_" + k], 0);
+  const bar = `<span class="costbar" role="img" aria-label="${COST_PARTS.map(([k, l]) => l + " " + money(r["_" + k])).join(", ")}">${COST_PARTS.map(([k]) => `<i style="width:${(100 * r["_" + k] / tot).toFixed(1)}%;background:var(--c-${k})"></i>`).join("")}</span>`;
+  const li = COST_PARTS.map(([k, l]) => {
+    const d = Math.round((r["_" + k] - TYPICAL[k]) / 100) * 100;
+    const vs = COST_VIEW !== "b" ? "" : Math.abs(d) < 300 ? `<span class="vs">About the same as the middle of your list</span>`
+      : `<span class="vs ${d > 0 ? "up" : "down"}">${money(Math.abs(d))} ${d > 0 ? "more" : "less"} than the middle of your list</span>`;
+    return `<li><span class="sw" style="background:var(--c-${k})"></span><span>${l}</span><span class="amt">${money(r["_" + k])}</span>${vs}</li>`;
+  }).join("");
+  const open = !!ui.costOpen;
+  return `<button type="button" class="costtog" aria-expanded="${open}"><span>${open ? "Hide breakdown" : "Show breakdown"}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="costbody"${open ? "" : " hidden"}>${bar}<ul class="costparts">${li}</ul>${COST_VIEW === "b" && TYPICAL.n ? `<p class="costnote">The middle of your list is the median of the ${TYPICAL.n} model years you haven't banished.</p>` : ""}</div>`;
+}
 const costTip = (r) => {
   const prem = /premium/.test(r["Gas/Hybrid"] || "");
   return `The price, plus 8.625% sales tax, plus five years of: the California vehicle license fee (0.65% of the price a year), ` +
@@ -890,7 +946,7 @@ function openDetail(key, vi) {
           `<button type="button" data-vi="${i}" aria-pressed="${i === vi}" class="${matched.has(x) ? "" : "dim"}"><b>${esc(vlabel(x))}</b><small>${money(x["KBB private party $"])}</small></button>`).join("")}</div>` : ""}
         <p class="dfoot" style="margin:0 0 8px">${esc(r.Description)}</p>
         ${dl([...ROW_FIELDS(c, r), ...rowExtra])}
-        <a class="shop ext" href="${esc(L.autotrader(c, r.Year))}" target="_blank" rel="noopener">See ${esc(r.Year + " " + c.title)}s for sale on Autotrader</a>
+        <a class="shop ext" href="${esc(L.cargurus(c, r.Year))}" target="_blank" rel="noopener">See ${esc(r.Year + " " + c.title)}s for sale on CarGurus</a>
       </section>
       <section>
         <h3>The car${rows.length > 1 ? ", every version" : ""}</h3>
@@ -903,7 +959,7 @@ function openDetail(key, vi) {
       <section>
         <h3>Look it up</h3>
         <div class="links">
-          ${y1 !== y2 ? `<a class="ext" href="${esc(L.autotrader(c, y1, y2))}" target="_blank" rel="noopener">Autotrader, ${y1}–${y2}</a>` : ""}
+          ${y1 !== y2 ? `<a class="ext" href="${esc(L.cargurus(c, y1, y2))}" target="_blank" rel="noopener">CarGurus, ${y1}–${y2}</a>` : ""}
           <a class="ext" href="${esc(L.kbb(c, r.Year))}" target="_blank" rel="noopener">Kelley Blue Book</a>
           ${L.nhtsa(c, r.Year) ? `<a class="ext" href="${esc(L.nhtsa(c, r.Year))}" target="_blank" rel="noopener">NHTSA crash tests and recalls</a>` : ""}
           ${L.iihs(c, r.Year, r) ? `<a class="ext" href="${esc(L.iihs(c, r.Year, r))}" target="_blank" rel="noopener">IIHS ratings</a>` : ""}
@@ -927,6 +983,9 @@ addEventListener("resize", () => { if (dlg.open) { markMore(); markTabs(); } });
 dlg.addEventListener("click", (e) => {
   if (e.target === dlg) { dlg.close(); return; }
   if (e.target.closest(".morebtn")) { dlg.scrollBy({ top: dlg.clientHeight * .7, behavior: "smooth" }); return; }
+  const ct = e.target.closest(".costtog:not([data-costcmp])");
+  if (ct) { ui.costOpen = !ui.costOpen; saveUi(); ct.nextElementSibling.hidden = !ui.costOpen; ct.setAttribute("aria-expanded", String(ui.costOpen));
+    ct.querySelector("span").textContent = ui.costOpen ? "Hide breakdown" : "Show breakdown"; markMore(); return; }
   const info = e.target.closest(".info");
   if (info) { const t = info.closest("div").querySelector(".tipx"), open = t.hidden; t.hidden = !open; info.setAttribute("aria-expanded", String(open)); markMore(); return; }
   const b = e.target.closest("[data-vi]"); if (!b) return;
