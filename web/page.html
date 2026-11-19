@@ -97,6 +97,10 @@ button { font: inherit; color: inherit; }
 .row2 { display: flex; gap: 8px; align-items: center; margin-top: 8px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .row2 { flex-wrap: wrap; }
+/* our own arrow, drawn in the text color, with room kept for it so a long label never runs under it */
+.row2 select { -webkit-appearance: none; appearance: none; padding-right: 32px !important; text-overflow: ellipsis;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%) !important;
+  background-position: right 16px center, right 11px center !important; background-size: 5px 5px, 5px 5px !important; background-repeat: no-repeat !important; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 240px; }
 @media (max-width: 600px) { .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type { flex-basis: 100%; } .count { flex-basis: 100%; margin-left: 0; } }
