@@ -794,6 +794,10 @@ const CMP = [
   ["Features", ["Bluetooth", "Backup camera", "Cruise control", "Heated seats", "Keyless entry", "Push-button start", "USB/aux input"].map((f) => [f, f])],
   ["For sale", [["Number for sale", "Number for sale (Autotrader)", "sale", 1]]],
 ];
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-costcmp]")) return;
+  ui.costOpen = !ui.costOpen; saveUi(); render(); document.querySelector("[data-costcmp]")?.focus();
+});
 const cmpBar = (list3) => `<div class="cmpbar"><div class="seg" role="group" aria-label="Show My Picks as">
   <button type="button" data-cmp="cards" aria-pressed="${ui.cmp !== "table"}">Cards</button><button type="button" data-cmp="table" aria-pressed="${ui.cmp === "table"}">Compare</button></div>
   ${ui.cmp === "table" ? `<button type="button" class="same" data-same aria-pressed="${!!ui.same}">Only differences</button><span class="note">Rows where your picks match are dimmed. Green is the best of your picks${list3 ? ", red text the worst" : ""}.</span>` : ""}</div>`;
@@ -826,6 +830,8 @@ function compareTable(list) {
   for (const [g, fields] of CMP) {
     let rowsHtml = "";
     for (const f of fields) {
+      if (f[4] === "sub" && !ui.costOpen) continue;
+      if (ui.costOpen && (f[1] === "Annual fuel $" || f[1] === "Annual repair cost $")) continue; // shown as 5-year parts instead
       const cells = list.map((it) => cmpCell(it, f));
       if (cells.every((x) => x.sig === "—")) continue;
       const same = new Set(cells.map((x) => x.sig)).size === 1;
@@ -835,7 +841,7 @@ function compareTable(list) {
         const vs = cells.map((x) => x.v).filter((v) => v != null);
         if (vs.length > 1) { best = f[3] > 0 ? Math.max(...vs) : Math.min(...vs); worst = f[3] > 0 ? Math.min(...vs) : Math.max(...vs); if (best === worst) best = worst = null; if (vs.length < 3) worst = null; }
       }
-      rowsHtml += `<tr class="${same ? "same" : "diff"}${f[4] ? " " + f[4] : ""}"><th scope="row">${esc(f[0])}</th>${cells.map((x) =>
+      rowsHtml += `<tr class="${same ? "same" : "diff"}${f[4] ? " " + f[4] : ""}"><th scope="row">${esc(f[0])}${f[1] === "5-year cost $" ? `<button type="button" class="costtog" data-costcmp aria-expanded="${!!ui.costOpen}"><span>Breakdown</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>` : ""}</th>${cells.map((x) =>
         `<td class="${x.v != null && x.v === best ? "best" : x.v != null && x.v === worst ? "worst" : ""}">${x.html}</td>`).join("")}</tr>`;
     }
     if (rowsHtml) body += `<tr class="grp"><th scope="rowgroup">${esc(g)}</th><td colspan="${list.length}"></td></tr>` + rowsHtml;
@@ -983,7 +989,7 @@ addEventListener("resize", () => { if (dlg.open) { markMore(); markTabs(); } });
 dlg.addEventListener("click", (e) => {
   if (e.target === dlg) { dlg.close(); return; }
   if (e.target.closest(".morebtn")) { dlg.scrollBy({ top: dlg.clientHeight * .7, behavior: "smooth" }); return; }
-  const ct = e.target.closest(".costtog");
+  const ct = e.target.closest(".costtog:not([data-costcmp])");
   if (ct) { ui.costOpen = !ui.costOpen; saveUi(); ct.nextElementSibling.hidden = !ui.costOpen; ct.setAttribute("aria-expanded", String(ui.costOpen));
     ct.querySelector("span").textContent = ui.costOpen ? "Hide breakdown" : "Show breakdown"; markMore(); return; }
   const info = e.target.closest(".info");
