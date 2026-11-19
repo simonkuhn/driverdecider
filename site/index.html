@@ -388,10 +388,24 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 
 @media (hover: hover) { .card { transition: transform .15s ease; } .card:hover { transform: translateY(-2px); } }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+.shared { background: var(--road); color: #eef0ee; border-bottom: 3px solid #f5c542; font-size: .92rem; }
+.shin { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.shin p { margin: 0; min-width: 0; flex: 1 1 280px; line-height: 1.35; }
+.shin b { color: #f5c542; font-weight: 600; }
+.shin span { color: #c9cdc8; }
+.shbtn { display: flex; gap: 8px; flex-wrap: wrap; }
+.shbtn button { font: inherit; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid #8d959b; background: transparent; color: #eef0ee; min-height: 40px; }
+.shbtn .pri { background: #f5c542; border-color: #f5c542; color: #171a1c; }
+.shbtn button:focus-visible { outline: 2px solid #f5c542; outline-offset: 2px; }
 </style>
 </head><body>
 
 
+<div class="shared" id="shared" role="region" aria-label="Shared view" hidden><div class="shin">
+  <p><b>You're looking at a view someone shared.</b> <span>Your own picks and filters are untouched. Save this view as yours?</span></p>
+  <div class="shbtn"><button type="button" id="shsave" class="pri">Save as mine</button><button type="button" id="shmine">Use my own</button></div>
+</div></div>
 <div class="wrap">
   <header class="masthead">
     <h1 class="wordmark"><b>D</b>river <b>D</b>ecider</h1>
@@ -483,11 +497,17 @@ const KEY = "driverdecider.v1";
 let saved = { hl: ["impreza4", "impreza5", "corolla10", "corolla11"], ban: [] }, fresh = true;
 try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.hl) && Array.isArray(s.ban)) { saved = s; fresh = false; } } catch {}
 // a shared link carries the whole page in its address (?h=picks&x=banished&v=year...); it wins over this browser's saved state
-const Q = new URLSearchParams(location.search), FROM_URL = [...Q.keys()].length > 0;
+const Q = new URLSearchParams(location.search);
+// the page keeps its own state in the address too, so a reload of this browser's own view is not a shared one
+const coreQ = (q) => { const c = new URLSearchParams(q); c.delete("car"); c.delete("vi"); return c.toString(); };
+const ownQ = (() => { try { return localStorage.getItem(KEY + ".q"); } catch { return null; } })();
+const FROM_URL = [...Q.keys()].length > 0 && coreQ(Q) !== ownQ;
 const DEF_HL = ["impreza4", "impreza5", "corolla10", "corolla11"];
 const listQ = (k, d) => (Q.has(k) ? Q.get(k).split(",").filter(Boolean) : d);
 if (FROM_URL) { saved = { hl: listQ("h", DEF_HL), ban: listQ("x", []) }; fresh = false; }
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {} };
+let viewing = FROM_URL; // a shared view stays out of this browser's saved state until Save
+const hadOwn = (() => { try { return !!localStorage.getItem(KEY); } catch { return false; } })();
+const save = () => { if (viewing) return; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {} };
 const isHl = (id) => saved.hl.includes(id), isBan = (id) => saved.ban.includes(id);
 const modelOf = (key) => String(key).split("@")[0];
 // a year card counts as picked or banished when its year or its whole model is
@@ -555,7 +575,7 @@ if (FROM_URL) {
   Object.assign(ui, UI_DEF);
   for (const [k, q] of Object.entries(UIQ)) if (Q.has(q)) ui[k] = ["same", "costOpen", "fold"].includes(k) ? Q.get(q) === "1" : Q.get(q);
 }
-const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
+const saveUi = () => { if (viewing) return; try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
 const rowPasses = (r, skip) => {
   if (ui.max && r["KBB private party $"] > +ui.max) return false;
@@ -678,6 +698,7 @@ const closed = { gone: true };
 if (FROM_URL) { if (Q.has("z")) { closed.gone = false; for (const id of listQ("z", [])) closed[id] = true; } }
 else try { Object.assign(closed, JSON.parse(localStorage.getItem(KEY + ".closed") || "{}")); } catch {}
 // mirror the page into the address bar, leaving out anything still at its default
+function saveClosed() { if (viewing) return; try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {} }
 function writeUrl() {
   const q = new URLSearchParams();
   for (const [k, p] of Object.entries(UIQ)) { const v = ui[k]; if (v && v !== UI_DEF[k]) q.set(p, v === true ? "1" : v); }
@@ -689,6 +710,7 @@ function writeUrl() {
   if (dlg.open && dlg.dataset.car) { q.set("car", dlg.dataset.car); if (curVar[dlg.dataset.car]) q.set("vi", curVar[dlg.dataset.car]); }
   const s = q.toString().replace(/%2C/g, ",").replace(/%40/g, "@");
   try { history.replaceState(null, "", location.pathname + (s ? "?" + s : "") + location.hash); } catch {}
+  if (!viewing) try { localStorage.setItem(KEY + ".q", coreQ(q)); } catch {}
 }
 const isPick = (c) => c.rows.some((r) => r["Simon's pick"] === "Yes");
 function section(id, title, items, mode) {
@@ -763,14 +785,14 @@ $("jumpbtn").addEventListener("click", () => {
 $("jump").addEventListener("click", (e) => {
   const b = e.target.closest("[data-jump]"); if (!b) return;
   const id = b.dataset.jump;
-  if (closed[id]) { closed[id] = false; try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {} render(); }
+  if (closed[id]) { closed[id] = false; saveClosed(); render(); }
   const sec = document.querySelector(".sect." + id);
   if (sec) sec.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   $("jump").classList.remove("open"); $("jumpbtn").setAttribute("aria-expanded", "false");
 });
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tog]");
-  if (t) { const id = t.dataset.tog; closed[id] = !closed[id]; try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {} render(); document.querySelector(`[data-tog="${id}"]`)?.focus(); return; }
+  if (t) { const id = t.dataset.tog; closed[id] = !closed[id]; saveClosed(); render(); document.querySelector(`[data-tog="${id}"]`)?.focus(); return; }
   if (e.target.closest("[data-clear]")) $("clear2").click();
 });
 
@@ -1038,7 +1060,10 @@ $("credits").innerHTML = [...new Set(cr)].join("");
 render();
 dlg.addEventListener("close", writeUrl);
 if (FROM_URL) {
-  save(); saveUi(); try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {}
+  const sb = $("shared"); sb.hidden = false;
+  if (!hadOwn) $("shmine").textContent = "Start fresh";
+  $("shsave").addEventListener("click", () => { viewing = false; save(); saveUi(); saveClosed(); sb.hidden = true; });
+  $("shmine").addEventListener("click", () => { location.href = location.pathname + location.hash; });
   const car = Q.get("car"); if (car && CARS.some((c) => c.id === car)) openDetail(car, Q.has("vi") ? +Q.get("vi") || 0 : undefined);
 }
 // keep section jumps clear of the sticky filter bar
