@@ -90,6 +90,13 @@ button { font: inherit; color: inherit; }
   background: linear-gradient(90deg, var(--gold-bg) 0 26px, transparent 26px 56px) 0 50% / 56px 3px repeat-x, var(--road); }
 .wordmark { margin: 0; color: var(--mast-ink); font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
 .wordmark b { font-weight: 400; color: inherit; }
+.wordmark a { color: inherit; text-decoration: none; display: inline-block; }
+.wordmark a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 4px; }
+.tip { position: absolute; z-index: 30; margin: 0; padding: 8px 12px; max-width: min(280px, calc(100vw - 16px)); box-sizing: border-box; border-radius: 10px;
+  background: var(--ink); color: var(--bg); font: 500 .85rem/1.3 var(--body); box-shadow: 0 6px 18px rgb(0 0 0 / .25); pointer-events: none; }
+.tip::before { content: ""; position: absolute; top: -4px; left: var(--nub, 50%); width: 10px; height: 10px; margin-left: -5px; border-radius: 2px; background: inherit; transform: rotate(45deg); }
+@keyframes tipin { from { opacity: 0; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: no-preference) { .tip { animation: tipin .15s ease-out; } }
 .tagline { margin: 0; color: var(--mast-sub); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
 
 /* filters: sticky strip of chips, then sort and price */
@@ -400,9 +407,10 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
   <p><b>You're looking at a view someone shared.</b> <span>Your own picks and filters are untouched. Save this view as yours?</span></p>
   <div class="shbtn"><button type="button" id="shsave" class="pri">Save as mine</button><button type="button" id="shmine">Use my own</button></div>
 </div></div>
+<p class="tip" id="tip" role="status" hidden></p>
 <div class="wrap">
   <header class="masthead">
-    <h1 class="wordmark"><b>D</b>river <b>D</b>ecider</h1>
+    <h1 class="wordmark"><a id="home" href="./" title="Back to your starting view"><b>D</b>river <b>D</b>ecider</a></h1>
     <p class="tagline">Used first cars from $5,000 to $11,000, priced for San Francisco. Tap a car for the full story.</p>
   </header>
 
@@ -1062,6 +1070,40 @@ $("credits").innerHTML = [...new Set(cr)].join("");
 
 render();
 dlg.addEventListener("close", writeUrl);
+
+// The wordmark goes back to the view this tab started with, as on Brief Encounters: filters, sort, By model or
+// By year, Compare and folded sections come back; My Picks and banished cars stay as they are. From a shared
+// link it goes back to the visitor's own view, as "Use my own" does.
+const START = { ui: JSON.stringify(ui), on: JSON.stringify(Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]]))), closed: JSON.stringify(closed) };
+let tipTimer = 0;
+function showTip(anchor, text) {
+  const t = $("tip"); t.textContent = text; t.hidden = false;
+  const a = anchor.getBoundingClientRect(), w = t.offsetWidth, vw = document.documentElement.clientWidth;
+  const left = Math.max(8, Math.min(a.left + Math.min(a.width, 260) / 2 - w / 2, vw - w - 8));
+  t.style.left = `${left + scrollX}px`; t.style.top = `${a.bottom + 9 + scrollY}px`;
+  t.style.setProperty("--nub", `${Math.max(14, Math.min(a.left + Math.min(a.width, 260) / 2 - left, w - 14))}px`);
+  clearTimeout(tipTimer); tipTimer = setTimeout(() => (t.hidden = true), 4000);
+}
+function goHome() {
+  if (viewing) { location.href = location.pathname + location.hash; return; }
+  const was = JSON.stringify(ui) === START.ui && JSON.stringify(closed) === START.closed && !dlg.open;
+  if (dlg.open) dlg.close();
+  if (!was) {
+    for (const k of Object.keys(ui)) delete ui[k];
+    Object.assign(ui, JSON.parse(START.ui));
+    const o = JSON.parse(START.on); for (const g of GROUPS) on[g.id] = new Set(o[g.id] || []);
+    for (const k of Object.keys(closed)) delete closed[k];
+    Object.assign(closed, JSON.parse(START.closed));
+    for (const id of ["type", "drive", "fuel", "safe", "rel", "sort", "max"]) $(id).value = ui[id] || "";
+    setView(); setFold(); saveUi(); saveClosed(); render();
+  }
+  scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  showTip($("home"), was ? "This is the view you started on" : "Back to the view you started on");
+}
+$("home").addEventListener("click", (e) => {
+  if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault(); goHome();
+});
 if (FROM_URL) {
   const sb = $("shared"); sb.hidden = false;
   if (!hadOwn) $("shmine").textContent = "Start fresh";
