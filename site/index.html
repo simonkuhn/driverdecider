@@ -335,6 +335,7 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .costparts .amt { font-variant-numeric: tabular-nums; text-align: right; }
 .costparts .vs { grid-column: 2 / -1; margin-top: -2px; color: var(--muted); font-size: .78rem; }
 .costparts .vs.up { color: var(--r-red-ink); } .costparts .vs.down { color: var(--r-green-ink); }
+.costnote { margin: 6px 0 0; color: var(--muted); font-size: .76rem; line-height: 1.35; }
 .cmp tr.sub th { padding-left: 22px; font-weight: 400; color: var(--muted); }
 .facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
 .big { font: 400 1.6rem/1 var(--display); letter-spacing: .02em; }
@@ -455,8 +456,12 @@ const COST_PARTS = [
 ];
 const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 for (const c of CARS) for (const r of c.rows) for (const [k, , f] of COST_PARTS) r["_" + k] = Math.round(f(r));
-const TYPICAL = Object.fromEntries(COST_PARTS.map(([k]) => [k, median(CARS.flatMap((c) => c.rows.map((r) => r["_" + k])))]));
-const COST_VIEW = "b"; // "a": bar and amounts; "b": also how each part compares with the typical car on the list
+// the middle of your list: the median of every model year you haven't banished
+const typical = () => {
+  const rows = CARS.flatMap((c) => c.rows.filter((r) => !banKey(c.id) && !banKey(c.id + "@" + r.Year)));
+  return { n: rows.length, ...Object.fromEntries(COST_PARTS.map(([k]) => [k, rows.length ? median(rows.map((r) => r["_" + k])) : 0])) };
+};
+const COST_VIEW = "b"; // "a": bar and amounts; "b": also how each part compares with the middle of your list
 // a number gets its unit; text such as "No rear seat" is shown as it is
 const unit = (v, u) => (typeof v === "number" ? v + " " + u : esc(v));
 const money = (n) => (typeof n === "number" ? "$" + Math.round(n).toLocaleString("en-US") : "—");
@@ -871,15 +876,16 @@ const ROW_FIELDS = (c, r) => {
 const dl = (pairs) => `<dl class="facts">${pairs.filter((p) => p[1] !== "" && p[1] != null).map(([k, v, tip]) =>
   `<div><dt>${esc(k)}${tip ? `<button type="button" class="info" aria-expanded="false" aria-label="What goes into ${esc(k)}">${ICON.info}</button>` : ""}</dt><dd>${v}</dd>${tip ? `<p class="tipx" hidden>${esc(tip)}</p>` : ""}</div>`).join("")}</dl>`;
 function costBreak(r) {
+  const TYPICAL = typical();
   const tot = COST_PARTS.reduce((s, [k]) => s + r["_" + k], 0);
   const bar = `<span class="costbar" role="img" aria-label="${COST_PARTS.map(([k, l]) => l + " " + money(r["_" + k])).join(", ")}">${COST_PARTS.map(([k]) => `<i style="width:${(100 * r["_" + k] / tot).toFixed(1)}%;background:var(--c-${k})"></i>`).join("")}</span>`;
   const li = COST_PARTS.map(([k, l]) => {
     const d = Math.round((r["_" + k] - TYPICAL[k]) / 100) * 100;
-    const vs = COST_VIEW !== "b" ? "" : Math.abs(d) < 300 ? `<span class="vs">About the same as the typical car</span>`
-      : `<span class="vs ${d > 0 ? "up" : "down"}">${money(Math.abs(d))} ${d > 0 ? "more" : "less"} than the typical car</span>`;
+    const vs = COST_VIEW !== "b" ? "" : Math.abs(d) < 300 ? `<span class="vs">About the same as the middle of your list</span>`
+      : `<span class="vs ${d > 0 ? "up" : "down"}">${money(Math.abs(d))} ${d > 0 ? "more" : "less"} than the middle of your list</span>`;
     return `<li><span class="sw" style="background:var(--c-${k})"></span><span>${l}</span><span class="amt">${money(r["_" + k])}</span>${vs}</li>`;
   }).join("");
-  return `${bar}<ul class="costparts">${li}</ul>`;
+  return `${bar}<ul class="costparts">${li}</ul>${COST_VIEW === "b" && TYPICAL.n ? `<p class="costnote">The middle of your list is the median of the ${TYPICAL.n} model years you haven't banished.</p>` : ""}`;
 }
 const costTip = (r) => {
   const prem = /premium/.test(r["Gas/Hybrid"] || "");
