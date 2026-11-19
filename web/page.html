@@ -8,7 +8,7 @@
 <style>
 /* Layout: a wordmark over a lane-line rule, a sticky strip of filter chips, then a wall of
    movie-poster cards (two across on an iPhone, three or four on a desktop) in sections with colored bars:
-   My Picks, Simon's picks, the rest, Banished.
+   My Picks, the rest (Simon's picks starred), Banished.
    Color: cool asphalt-tinted paper + ink, one accent: lane-line yellow (amber where it is text on light paper). */
 :root {
   --bg: #f2f3f1;
@@ -548,7 +548,7 @@ function section(id, title, items, mode) {
   if (!items.length) return "";
   const shut = !!closed[id];
   const note = id === "rest" && !saved.hl.length && !saved.ban.length
-    ? '<p class="hint">Tap the bookmark to add a car to My Picks at the top. Tap the crossed-out eye to banish it from your list.</p>' : "";
+    ? '<p class="hint">Tap the bookmark to add a car to My Picks at the top. Tap the crossed-out eye to banish it from your list. A gold ★ marks Simon\'s picks.</p>' : "";
   return `<section class="sect ${id}${shut ? " closed" : ""}" aria-labelledby="h-${id}">
     <div class="bar"><h2 id="h-${id}">${SECT_ICON[id] || ""}${esc(title)}</h2><span class="n">${items.length}</span>
       <button type="button" class="tog" data-tog="${id}" aria-expanded="${!shut}">${shut ? "Expand" : "Collapse"}</button></div>
@@ -567,16 +567,15 @@ function render() {
     if (banKey(it.key)) { gone.push(it); continue; }
     const rows = it.rows.filter((r) => rowPasses(r)); if (!rows.length) continue;
     const x = { ...it, rows };
-    (hlKey(it.key) ? hls : x.rows.some((r) => r["Simon's pick"] === "Yes") ? picks : rest).push(x);
+    (hlKey(it.key) ? hls : rest).push(x);
   }
   sorted(hls); sorted(picks); sorted(rest); sorted(gone);
   $("sections").innerHTML =
     section("hl", "My Picks", hls) +
-    section("picks", "Simon's picks", picks) +
-    section("rest", picks.length || hls.length ? "The rest" : "All cars", rest) +
+    section("rest", hls.length ? "The rest" : "All cars", rest) +
     section("gone", "Banished", gone, "gone");
-  renderJump([["hl", "My Picks", hls], ["picks", "Simon's picks", picks], ["rest", picks.length || hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
-  const shown = hls.length + picks.length + rest.length;
+  renderJump([["hl", "My Picks", hls], ["rest", hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
+  const shown = hls.length + rest.length;
   $("empty").hidden = shown > 0;
   $("count").innerHTML = shown + " of " + (all.length - gone.length) + (ui.view === "year" ? " model years" : " cars") + (anyFilter() ? ' · <button type="button" class="clear" data-clear>Clear filters</button>' : "");
 }
