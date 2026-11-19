@@ -193,9 +193,7 @@ button { font: inherit; color: inherit; }
 
 /* a card: a rounded box holding the poster and a price line */
 .card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 10px; overflow: hidden;
-  background: var(--surface); box-shadow: var(--shadow);
-  /* let the browser skip laying out and painting cards that are off screen */
-  content-visibility: auto; contain-intrinsic-size: auto 420px; }
+  background: var(--surface); box-shadow: var(--shadow); }
 .poster { --tone: #2a2f33; position: relative; display: flex; flex-direction: column; aspect-ratio: 2 / 3; max-width: 100%;
   width: 100%; border: 0; padding: 0; margin: 0; text-align: left; cursor: pointer; overflow: hidden;
   background: radial-gradient(120% 70% at 50% 30%, color-mix(in srgb, var(--tone) 70%, #fff 8%), var(--tone) 70%); color: #f4f1ea; }
@@ -581,7 +579,7 @@ function card(it, mode) {
   const summary = c.rows[0].Summary || "";
   return `<article class="card${hl ? " hlt" : ""}${mode === "gone" ? " gone" : ""}" data-id="${key}">
     <button type="button" class="poster" style="--tone:${c.tone}" data-open="${key}" aria-label="${esc(c.brand + " " + c.title + ", " + c.gen + ", " + years)}">
-      <img class="shot${contain}" src="${esc(c.card || c.ext)}" alt="" loading="lazy" decoding="async">
+      <img class="shot${contain}" src="${esc(c.card || c.ext)}" alt="">
       <span class="ptext">
         <span class="brand">${esc(c.brand)}</span>
         <span class="ttl${long}">${esc(c.title)}</span>
@@ -763,7 +761,7 @@ function cmpCell(it, f) {
 function compareTable(list) {
   const head = list.map((it) => {
     const yrs = it.year ? String(it.year) : yearsOf(it.rows);
-    return `<th scope="col"><div class="car"><img src="${esc(it.c.card || it.c.ext)}" alt="" loading="lazy" decoding="async"><span class="brand">${esc(it.c.brand)}</span>
+    return `<th scope="col"><div class="car"><img src="${esc(it.c.card || it.c.ext)}" alt=""><span class="brand">${esc(it.c.brand)}</span>
       <button type="button" class="open" data-open="${esc(it.key)}">${esc(it.c.title)}</button><span class="yrs">${esc(yrs)}</span>
       <button type="button" class="rm" data-hl="${esc(it.key)}" aria-label="Remove ${esc(nameOf(it.key))} from My Picks">Remove</button></div></th>`;
   }).join("");
@@ -886,7 +884,7 @@ function openDetail(key, vi) {
       </section>
       <section>
         <h3>Inside</h3>
-        <img class="inter" src="${esc(c.int)}" alt="${esc(c.title)} dashboard and front seats" loading="lazy">
+        <img class="inter" src="${esc(c.int)}" alt="${esc(c.title)} dashboard and front seats">
       </section>
       <section>
         <h3>Look it up</h3>
