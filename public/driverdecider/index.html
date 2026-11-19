@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Driver Decider</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Used first cars between $5,000 and $11,000, compared on price, safety, reliability and running costs.">
+<meta name="theme-color" content="#f2f3f1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a wordmark over a lane-line rule, a sticky strip of filter chips, then a wall of
+   movie-poster cards (two across on an iPhone), each with a ticket-stub price strip.
+   Color: cool asphalt-tinted paper + ink, one road-sign green accent, gold for Simon's picks. */
+:root {
+  --bg: #f2f3f1;
+  --surface: #ffffff;
+  --ink: #171a1c;
+  --muted: #5b6268;
+  --line: #dcdfdc;
+  --accent: #17644a;
+  --accent-ink: #ffffff;
+  --gold: #b07a00;
+  --gold-bg: #f5c542;
+  --stub: #f4efe2;
+  --stub-ink: #382c14;
+  --shadow: 0 1px 2px rgb(23 26 28 / .06), 0 6px 18px rgb(23 26 28 / .08);
+  /* rating colors, as in the comparison sheet */
+  --r-blue: #d6e6fb; --r-blue-ink: #163d73;
+  --r-green: #d5f0dc; --r-green-ink: #145a2c;
+  --r-yellow: #fbf0bf; --r-yellow-ink: #5c4600;
+  --r-orange: #fde0c4; --r-orange-ink: #7a3a00;
+  --r-red: #f9d3d0; --r-red-ink: #8a1c14;
+  --r-gray: #e7e8e6; --r-gray-ink: #4b5157;
+  --display: "League Gothic", "Oswald", "Arial Narrow", Impact, sans-serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
+    --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+    --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
+    --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
+    --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
+    --r-red: #4a1c19; --r-red-ink: #f6aea7; --r-gray: #2a2f33; --r-gray-ink: #b9bfc3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
+  --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
+  --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
+  --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
+  --r-red: #4a1c19; --r-red-ink: #f6aea7; --r-gray: #2a2f33; --r-gray-ink: #b9bfc3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); -webkit-text-size-adjust: 100%; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { max-width: 1240px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 40px; }
+
+/* masthead: the rule under it is a road, a dark band with a dashed center line */
+.masthead { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 6px 24px; padding-bottom: 24px; }
+.masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold-bg) 0 26px, transparent 26px 44px) 0 50% / 44px 3px repeat-x, var(--ink); }
+.wordmark { margin: 0; font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
+.wordmark b { font-weight: 400; color: var(--accent); }
+.tagline { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
+
+/* filters: sticky strip of chips, then sort and price */
+.filters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0 calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.chips::-webkit-scrollbar { display: none; }
+.chips::after { content: ""; flex: 0 0 1px; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 13px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: .88rem; cursor: pointer; white-space: nowrap; }
+.chip .n { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip[aria-pressed="true"] .n { color: inherit; opacity: .7; }
+.chip.pick[aria-pressed="false"] .star { color: var(--gold); }
+.sep { flex: none; width: 1px; align-self: stretch; margin: 6px 3px; background: var(--line); }
+.row2 { display: flex; gap: 8px; align-items: center; margin-top: 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 220px; }
+.count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
+
+/* sections */
+.sect { margin-top: 22px; }
+.sbar { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; }
+.sbar h2 { margin: 0; font: 400 1.9rem/1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.sbar .n { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.sbar .act { margin-left: auto; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .88rem; cursor: pointer; padding: 6px 0; }
+.hint { margin: -4px 0 12px; color: var(--muted); font-size: .88rem; max-width: 60ch; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px 16px; }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr 1fr; gap: 16px 12px; } }
+
+/* a card: the poster, then the ticket stub */
+.card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 10px; overflow: hidden;
+  background: var(--surface); box-shadow: var(--shadow); }
+.poster { --tone: #2a2f33; position: relative; display: flex; flex-direction: column; aspect-ratio: 2 / 3; max-width: 100%;
+  width: 100%; border: 0; padding: 0; margin: 0; text-align: left; cursor: pointer; overflow: hidden;
+  background: radial-gradient(120% 70% at 50% 30%, color-mix(in srgb, var(--tone) 70%, #fff 8%), var(--tone) 70%); color: #f4f1ea; }
+.poster .shot { width: 100%; height: 47%; object-fit: cover; display: block; flex: none;
+  -webkit-mask: linear-gradient(#000 70%, transparent); mask: linear-gradient(#000 70%, transparent); }
+.poster .shot.contain { object-fit: contain; object-position: center 60%; }
+.ptext { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 10px 10px; margin-top: -8%; min-height: 0; position: relative; }
+.brand { font: 600 .62rem/1 var(--body); letter-spacing: .32em; text-transform: uppercase; opacity: .78; padding-left: .32em; }
+.ttl { font: 400 3rem/.86 var(--display); text-transform: uppercase; letter-spacing: .01em; margin-top: 4px; text-wrap: balance;
+  text-shadow: 0 2px 14px rgb(0 0 0 / .35); }
+.ttl.long { font-size: 2.2rem; }
+.gen { font: 600 .7rem/1.2 var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--gold-bg); margin-top: 5px; }
+.tag { flex: none; font: italic 400 .72rem/1.28 var(--body); opacity: .88; margin-top: 6px; overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-wrap: pretty; }
+.billing { margin-top: auto; padding-top: 5px; font: 400 .74rem/1.05 var(--display); letter-spacing: .06em; text-transform: uppercase;
+  opacity: .8; border-top: 1px solid rgb(255 255 255 / .22); width: 100%; }
+.pickflag { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--gold-bg); color: #241a00; font: 700 .64rem/1 var(--body);
+  letter-spacing: .06em; text-transform: uppercase; padding: 5px 7px; border-radius: 4px; pointer-events: none; }
+.cbtns { position: absolute; z-index: 3; top: 6px; right: 6px; display: flex; gap: 6px; }
+.cbtn { width: 36px; height: 36px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; display: grid; place-items: center;
+  background: rgb(10 12 14 / .55); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.cbtn svg { width: 18px; height: 18px; }
+.cbtn:hover { background: rgb(10 12 14 / .85); }
+.cbtn.hl.on, .cbtn.hl.on:hover { background: var(--gold-bg); color: #241a00; }
+.cbtn:focus-visible { outline-color: #fff; }
+.pickstar { position: absolute; z-index: 2; top: 6px; left: 6px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--gold-bg); color: #241a00; font-size: 1rem; line-height: 1; pointer-events: none; box-shadow: 0 1px 4px rgb(0 0 0 / .3); }
+.stub { position: relative; background: var(--stub); color: var(--stub-ink); padding: 7px 8px 7px 11px;
+  border-top: 2px dashed color-mix(in srgb, var(--stub-ink) 28%, transparent); display: flex; align-items: center; gap: 4px; }
+.stub .price, .stub small { white-space: nowrap; }
+.stub .st { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.stub::before, .stub::after { content: ""; position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); }
+.stub::before { left: -7px; } .stub::after { right: -7px; }
+.stub .price { font: 400 1.3rem/1.05 var(--display); letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+.stub small { font-size: .74rem; opacity: .8; line-height: 1.3; }
+.card.hlt { box-shadow: 0 0 0 2px var(--gold-bg), var(--shadow); }
+.card.gone .poster { filter: grayscale(1) brightness(.75); }
+.card.gone .stub { opacity: .55; }
+.back { position: absolute; z-index: 3; left: 50%; top: 38%; transform: translate(-50%, -50%); border: 0; border-radius: 999px;
+  background: var(--surface); color: var(--ink); font-weight: 700; font-size: .85rem; padding: 9px 14px; box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; }
+
+details.banished { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; }
+details.banished > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 10px; }
+details.banished > summary::-webkit-details-marker { display: none; }
+details.banished > summary h2 { margin: 0; font: 400 1.9rem/1 var(--display); text-transform: uppercase; letter-spacing: .02em; color: var(--muted); }
+details.banished > summary .tw { margin-left: auto; color: var(--accent); font-weight: 600; font-size: .88rem; }
+details.banished[open] > summary .tw .o, details.banished:not([open]) > summary .tw .c { display: none; }
+details.banished .grid { margin-top: 12px; }
+.empty { color: var(--muted); padding: 32px 0; text-align: center; }
+
+.foot { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .84rem; display: grid; gap: 10px; }
+.foot p { margin: 0; max-width: 72ch; }
+.foot summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.foot ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; overflow-wrap: anywhere; }
+
+/* detail sheet */
+dialog.detail { border: 0; padding: 0; margin: auto; width: min(760px, 100vw); max-width: 100vw; max-height: 100dvh; height: auto;
+  background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: var(--shadow); overflow: auto; overscroll-behavior: contain; }
+dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
+@media (max-width: 560px) { dialog.detail { width: 100vw; height: 100dvh; border-radius: 0; margin: 0; } }
+.dtop { position: sticky; top: 0; z-index: 4; display: flex; gap: 8px; justify-content: flex-end; padding: calc(10px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 0 12px; height: 0; overflow: visible; }
+.dtop button { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
+  background: rgb(10 12 14 / .6); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.dtop button svg { width: 20px; height: 20px; }
+.dacts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.dacts button { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgb(255 255 255 / .35); background: rgb(255 255 255 / .08); color: #f4f1ea; font-weight: 600; font-size: .88rem; }
+.dacts button svg { width: 18px; height: 18px; }
+.dacts .hl.on { background: var(--gold-bg); color: #241a00; border-color: var(--gold-bg); }
+.dhero { --tone: #2a2f33; background: var(--tone); color: #f4f1ea; display: grid; }
+.dhero img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; max-width: 100%;
+  -webkit-mask: linear-gradient(#000 75%, transparent); mask: linear-gradient(#000 75%, transparent); }
+.dhero .t { padding: 0 max(18px, env(safe-area-inset-right, 0px)) 18px max(18px, env(safe-area-inset-left, 0px)); margin-top: -36px; position: relative; display: grid; gap: 4px; }
+.dhero h2 { margin: 0; font: 400 clamp(3rem, 14vw, 4.4rem)/.86 var(--display); text-transform: uppercase; text-wrap: balance; }
+.dhero .brand { opacity: .85; }
+.dhero .gen { font-size: .75rem; margin-top: 2px; }
+.dhero .sum { margin: 8px 0 0; font-style: italic; max-width: 60ch; opacity: .92; }
+.dhero .pickflag { position: static; justify-self: start; margin-bottom: 4px; }
+.dbody > section { min-width: 0; }
+.dbody { padding: 18px max(18px, env(safe-area-inset-right, 0px)) 28px max(18px, env(safe-area-inset-left, 0px)); display: grid; gap: 22px; }
+.dbody h3 { margin: 0 0 8px; font: 600 .74rem var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.b { display: inline-block; font-size: .8rem; font-weight: 600; padding: 3px 8px; border-radius: 5px; background: var(--r-gray); color: var(--r-gray-ink); line-height: 1.35; }
+.b.blue { background: var(--r-blue); color: var(--r-blue-ink); } .b.green { background: var(--r-green); color: var(--r-green-ink); }
+.b.yellow { background: var(--r-yellow); color: var(--r-yellow-ink); } .b.orange { background: var(--r-orange); color: var(--r-orange-ink); }
+.b.red { background: var(--r-red); color: var(--r-red-ink); }
+.b.plain { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+.vtabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; }
+.vtabs::-webkit-scrollbar { display: none; }
+.vtabs button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 11px; cursor: pointer;
+  display: grid; text-align: left; line-height: 1.2; min-height: 44px; }
+.vtabs button b { font: 400 1.15rem/1 var(--display); letter-spacing: .03em; }
+.vtabs button small { font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.vtabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.vtabs button[aria-pressed="true"] small { color: inherit; opacity: .75; }
+.vtabs button.dim { opacity: .5; }
+.facts { margin: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--line); }
+.facts > div { display: grid; grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr); gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.facts dt { color: var(--muted); font-size: .86rem; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.facts dd a { text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
+.facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
+.big { font: 400 1.6rem/1 var(--display); letter-spacing: .02em; }
+.shop { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: var(--accent);
+  color: var(--accent-ink); font-weight: 700; text-decoration: none; padding: 10px 16px; text-align: center; margin-top: 12px; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; }
+.links a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line);
+  text-decoration: none; font-weight: 600; font-size: .88rem; }
+.ext::after { content: "↗"; font-size: .8em; margin-left: 3px; opacity: .65; }
+.inter { width: 100%; border-radius: 10px; display: block; aspect-ratio: 3 / 2; object-fit: cover; max-width: 100%; background: var(--line); }
+.cap { color: var(--muted); font-size: .76rem; margin: 4px 0 0; overflow-wrap: anywhere; }
+.feat { display: grid; grid-template-columns: 1fr; }
+.dfoot { color: var(--muted); font-size: .8rem; }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 20;
+  background: var(--ink); color: var(--bg); border-radius: 999px; padding: 10px 10px 10px 16px; display: flex; gap: 12px; align-items: center;
+  box-shadow: var(--shadow); font-size: .9rem; max-width: calc(100vw - 32px); }
+.toast button { border: 0; background: var(--bg); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+
+@media (hover: hover) { .card { transition: transform .15s ease; } .card:hover { transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+</style>
+</head><body>
+
+
+<div class="wrap">
+  <header class="masthead">
+    <h1 class="wordmark"><b>D</b>river <b>D</b>ecider</h1>
+    <p class="tagline">Used first cars from $5,000 to $11,000, priced for San Francisco. Tap a poster for the full story.</p>
+  </header>
+
+  <div class="filters" role="search" aria-label="Filters">
+    <div class="chips" id="chips"></div>
+    <div class="row2">
+      <label class="sr" for="sort">Sort</label>
+      <select id="sort">
+        <option value="price">Lowest price</option>
+        <option value="cost">Lowest 5-year cost</option>
+        <option value="mpg">Best MPG</option>
+        <option value="safety">Safest</option>
+        <option value="rel">Most reliable</option>
+        <option value="sale">Most for sale</option>
+        <option value="name">A to Z</option>
+      </select>
+      <label class="sr" for="max">Highest price</label>
+      <select id="max">
+        <option value="">Any price</option>
+        <option value="7000">Up to $7,000</option>
+        <option value="8000">Up to $8,000</option>
+        <option value="9000">Up to $9,000</option>
+        <option value="10000">Up to $10,000</option>
+      </select>
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+
+  <section class="sect" id="hlSect" hidden aria-labelledby="hlH">
+    <div class="sbar"><h2 id="hlH">Highlights</h2><span class="n" id="hlN"></span></div>
+    <div class="grid" id="hlGrid"></div>
+  </section>
+
+  <section class="sect" aria-labelledby="allH">
+    <div class="sbar"><h2 id="allH">The lineup</h2><span class="n" id="allN"></span>
+      <button type="button" class="act" id="clear2" hidden>Clear filters</button></div>
+    <p class="hint" id="hint">Tap the bookmark to highlight a car and keep it at the top. Tap the crossed-out eye to banish it from your list.</p>
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>No cars match these filters.</p>
+  </section>
+
+  <details class="banished" id="banSect" hidden>
+    <summary><h2>Banished</h2><span class="n" id="banN"></span><span class="tw"><span class="o">Show</span><span class="c">Hide</span></span></summary>
+    <div class="grid" id="banGrid"></div>
+  </details>
+
+  <footer class="foot">
+    <p>Prices are Kelley Blue Book private-party values in Very Good condition for San Francisco, read in November 2026. The 5-year cost adds California sales tax and license fees, fuel at 12,000 miles a year, and repairs and maintenance at Bay Area shop rates. Insurance is a Geico quote for one driver and is not in the 5-year cost. Number for sale is a rough nationwide Autotrader count.</p>
+    <p>Highlights and banished cars are kept in this browser only.</p>
+    <details><summary>Photo credits</summary><ul id="credits"></ul></details>
+  </footer>
+</div>
+
+<dialog class="detail" id="detail" aria-labelledby="dTitle"></dialog>
+<div class="toast" id="toast" role="status" hidden><span id="toastT"></span><button type="button" id="undo">Undo</button></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+"use strict";
+const CARS = window.CARS || [];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = (n) => (typeof n === "number" ? "$" + Math.round(n).toLocaleString("en-US") : "—");
+const num = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : "—");
+const range = (a, f = money) => { const lo = Math.min(...a), hi = Math.max(...a); return lo === hi ? f(lo) : f(lo) + "–" + f(hi).replace("$", "$"); };
+const yearsOf = (rows) => { const y = [...new Set(rows.map((r) => r.Year))].sort(); return y.length === 1 ? String(y[0]) : y[0] + "–" + y[y.length - 1]; };
+
+// ---- saved choices (this browser only) ----
+const KEY = "driverdecider.v1";
+let saved = { hl: [], ban: [] };
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.hl) && Array.isArray(s.ban)) saved = s; } catch {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {} };
+const isHl = (id) => saved.hl.includes(id), isBan = (id) => saved.ban.includes(id);
+
+// ---- icons ----
+const ICON = {
+  mark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
+  markOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
+  ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+};
+
+// ---- ratings, colored as in the comparison sheet ----
+const LEVEL = { High: "green", Med: "yellow", Low: "red", "Not rated": "" };
+const iihsCls = (s) => !s ? "" : /Poor/.test(s) ? "red" : /Marginal/.test(s) ? "orange" : /^No award/.test(s) ? "yellow" : /Top Safety Pick\+/.test(s) ? "blue" : /Top Safety Pick/.test(s) ? "green" : "";
+const nhtsaCls = (s) => {
+  if (!s || /Not rated/i.test(s)) return "";
+  const n = (s.match(/\d/g) || []).map(Number); if (!n.length) return "";
+  if (n.some((x) => x <= 2)) return "red"; if (n.some((x) => x === 3)) return "orange";
+  return n.every((x) => x === 5) ? "blue" : "green";
+};
+const crCls = (v, redAt) => typeof v !== "number" ? "" : v >= 61 ? "green" : v > redAt ? "yellow" : "red";
+const saleLevel = (n) => typeof n !== "number" ? "" : n >= 50 ? "High" : n >= 20 ? "Medium" : "Low";
+const saleCls = (n) => ({ High: "green", Medium: "yellow", Low: "red" }[saleLevel(n)] || "");
+const badge = (text, cls) => `<span class="b ${cls || ""}">${esc(text)}</span>`;
+const RANK = { High: 3, Med: 2, Low: 1 };
+
+// ---- links out ----
+const CR_MODEL = { mazda3: "3", mazda6: "6" };
+const NHTSA_MODEL = { ilx: "ILX", civic: "CIVIC", accord: "ACCORD", miata: "MX-5", mazda3s: "MAZDA3", mazda3h: "MAZDA3", mazda6: "MAZDA6",
+  cooper: "COOPER HARDTOP", coopers: "COOPER S HARDTOP", impreza4: "IMPREZA", impreza5: "IMPREZA", legacy: "LEGACY", yaris: "YARIS",
+  corolla10: "COROLLA", corolla11: "COROLLA", prius: "PRIUS", priusc: "PRIUS C", beetle: "BEETLE", jetta: "JETTA", passat: "PASSAT", golf: "GOLF" };
+const L = {
+  kbb: (c, y) => `https://www.kbb.com/${c.make}/${c.kbbModel}/${y}/`,
+  nhtsa: (c, y) => NHTSA_MODEL[c.id] ? `https://www.nhtsa.gov/vehicle/${y}/${c.make.toUpperCase()}/${encodeURIComponent(NHTSA_MODEL[c.id])}` : "",
+  iihs: (c, y, r) => { if (!c.iihs) return ""; let s = c.iihs; if (c.make === "subaru" && c.model === "impreza" && r && r["Body style"] === "Hatchback") s = "subaru/impreza-4-door-wagon"; return `https://www.iihs.org/ratings/vehicle/${s}/${y}`; },
+  cr: (c, y) => `https://www.consumerreports.org/cars/${c.make}/${CR_MODEL[c.model] || c.model}/${y}/overview/`,
+  repairpal: (c) => `https://repairpal.com/reliability/${c.make}/${c.model}`,
+  autotrader: (c, y1, y2) => `https://www.autotrader.com/cars-for-sale/used-cars/${c.make}/${c.model}/san-francisco-ca?startYear=${y1}&endYear=${y2 || y1}&searchRadius=100`,
+  geico: () => "https://www.geico.com/auto-insurance/",
+};
+const a = (href, text) => href ? `<a class="ext" href="${esc(href)}" target="_blank" rel="noopener">${text}</a>` : text;
+
+// ---- filters ----
+const bodyOf = (r) => r["Body style"] === "Sedan or hatchback" ? ["Sedan", "Hatchback"] : [r["Body style"]];
+const fuelOf = (r) => /Hybrid/.test(r["Gas/Hybrid"]) ? "Hybrid" : /premium/.test(r["Gas/Hybrid"]) ? "Premium gas" : "Regular gas";
+const GROUPS = [
+  { id: "pick", chips: [{ v: "pick", label: '<span class="star">★</span> Simon\'s picks', test: (r) => r["Simon's pick"] === "Yes", cls: "pick" }] },
+  { id: "body", chips: ["Sedan", "Hatchback", "Convertible"].map((v) => ({ v, label: v, test: (r) => bodyOf(r).includes(v) })) },
+  { id: "size", chips: ["Subcompact", "Compact", "Mid-size"].map((v) => ({ v, label: v, test: (r) => r.Size === v })) },
+  { id: "fuel", chips: ["Hybrid", "Regular gas", "Premium gas"].map((v) => ({ v, label: v, test: (r) => fuelOf(r) === v })) },
+  { id: "awd", chips: [{ v: "awd", label: "All-wheel drive", test: (r) => r.Drive === "All-wheel drive" }] },
+  { id: "safe", chips: [{ v: "safe", label: "Safety: High", test: (r) => r["Safety level (High/Med/Low)"] === "High" }] },
+  { id: "rel", chips: [{ v: "rel", label: "Reliability: High", test: (r) => r["Reliability (High/Med/Low)"] === "High" }] },
+];
+const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
+const ui = { sort: "price", max: "" };
+try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
+const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
+
+const rowPasses = (r, skip) => {
+  if (ui.max && r["KBB private party $"] > +ui.max) return false;
+  for (const g of GROUPS) {
+    if (g.id === skip || !on[g.id].size) continue;
+    if (!g.chips.some((c) => on[g.id].has(c.v) && c.test(r))) return false;
+  }
+  return true;
+};
+const matchRows = (c) => c.rows.filter((r) => rowPasses(r));
+const anyFilter = () => !!ui.max || GROUPS.some((g) => on[g.id].size);
+
+function renderChips() {
+  const parts = [];
+  GROUPS.forEach((g, i) => {
+    if (i) parts.push('<span class="sep" aria-hidden="true"></span>');
+    for (const c of g.chips) {
+      const n = CARS.filter((car) => !isBan(car.id) && car.rows.some((r) => c.test(r) && rowPasses(r, g.id))).length;
+      parts.push(`<button type="button" class="chip ${c.cls || ""}" data-g="${g.id}" data-v="${esc(c.v)}" aria-pressed="${on[g.id].has(c.v)}">${c.label} <span class="n">${n}</span></button>`);
+    }
+  });
+  $("chips").innerHTML = parts.join("");
+}
+$("chips").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const s = on[b.dataset.g]; s.has(b.dataset.v) ? s.delete(b.dataset.v) : s.add(b.dataset.v);
+  saveUi(); render();
+});
+$("sort").value = ui.sort; $("max").value = ui.max;
+$("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
+$("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
+$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; $("max").value = ""; saveUi(); render(); });
+
+// ---- sorting ----
+const best = (rows, k, f = Math.min) => f(...rows.map((r) => (typeof r[k] === "number" ? r[k] : f === Math.min ? Infinity : -Infinity)));
+const SORTS = {
+  price: (r) => best(r, "KBB private party $"),
+  cost: (r) => best(r, "5-year cost $"),
+  mpg: (r) => -best(r, "Combined MPG", Math.max),
+  safety: (r) => -Math.max(...r.map((x) => RANK[x["Safety level (High/Med/Low)"]] || 0)) * 1e6 + best(r, "KBB private party $"),
+  rel: (r) => -Math.max(...r.map((x) => RANK[x["Reliability (High/Med/Low)"]] || 0)) * 1e6 + best(r, "KBB private party $"),
+  sale: (r) => -r.reduce((s, x) => s + (typeof x["Number for sale (Autotrader)"] === "number" ? x["Number for sale (Autotrader)"] : 0), 0),
+};
+function sorted(list) {
+  const k = ui.sort;
+  return list.sort((x, y) => k === "name" ? (x.c.title + x.c.gen).localeCompare(y.c.title + y.c.gen) : SORTS[k](x.rows) - SORTS[k](y.rows));
+}
+
+// ---- cards ----
+const levelsLine = (rows, k) => { const v = [...new Set(rows.map((r) => r[k]).filter(Boolean))]; return v.sort((p, q) => (RANK[q] || 0) - (RANK[p] || 0)).join("/"); };
+function card(c, rows, mode) {
+  const prices = rows.map((r) => r["KBB private party $"]);
+  const mpg = range(rows.map((r) => r["Combined MPG"]), String);
+  const pick = c.rows.some((r) => r["Simon's pick"] === "Yes");
+  const safety = levelsLine(rows, "Safety level (High/Med/Low)"), rel = levelsLine(rows, "Reliability (High/Med/Low)");
+  const nV = rows.length, years = yearsOf(rows);
+  const hl = isHl(c.id);
+  const long = c.title.length > 8 ? " long" : "";
+  const contain = ["cooper", "coopers", "impreza4", "corolla11"].includes(c.id) ? " contain" : "";
+  const summary = c.rows[0].Summary || "";
+  return `<article class="card${hl ? " hlt" : ""}${mode === "gone" ? " gone" : ""}" data-id="${c.id}">
+    <button type="button" class="poster" style="--tone:${c.tone}" data-open="${c.id}" aria-label="${esc(c.brand + " " + c.title + ", " + c.gen + ", " + years)}">
+      <img class="shot${contain}" src="${esc(c.ext)}" alt="" loading="lazy" decoding="async">
+      <span class="ptext">
+        <span class="brand">${esc(c.brand)}</span>
+        <span class="ttl${long}">${esc(c.title)}</span>
+        <span class="gen">${esc(years)}</span>
+        ${summary && !long ? `<span class="tag">${esc(summary)}</span>` : ""}
+        <span class="billing">${esc(mpg)} MPG · Safety ${esc(safety)} · Reliability ${esc(rel)}</span>
+      </span>
+    </button>
+    ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
+    ${mode === "gone" ? `<button type="button" class="back" data-back="${c.id}">Bring back</button>` : ""}
+    ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${c.id}" aria-pressed="${hl}" title="${hl ? "Remove highlight" : "Highlight this car"}" aria-label="${hl ? "Remove highlight from" : "Highlight"} ${esc(c.title)}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${c.id}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
+    <div class="stub"><span class="st"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>5-yr from ${money(Math.min(...rows.map((r) => r["5-year cost $"])))}</small></span>
+</div>
+  </article>`;
+}
+
+function render() {
+  renderChips();
+  const live = [], hls = [], gone = [];
+  for (const c of CARS) {
+    if (isBan(c.id)) { gone.push(c); continue; }
+    const rows = matchRows(c); if (!rows.length) continue;
+    (isHl(c.id) ? hls : live).push({ c, rows });
+  }
+  sorted(hls); sorted(live);
+  $("hlSect").hidden = !hls.length;
+  $("hlGrid").innerHTML = hls.map((x) => card(x.c, x.rows)).join("");
+  $("hlN").textContent = hls.length;
+  $("grid").innerHTML = live.map((x) => card(x.c, x.rows)).join("");
+  $("allN").textContent = live.length;
+  $("empty").hidden = !!live.length || !!hls.length;
+  $("clear2").hidden = !anyFilter();
+  $("hint").hidden = saved.hl.length > 0 || saved.ban.length > 0;
+  $("count").textContent = (live.length + hls.length) + " of " + (CARS.length - gone.length) + " cars";
+  $("banSect").hidden = !gone.length;
+  $("banN").textContent = gone.length;
+  $("banGrid").innerHTML = gone.map((c) => card(c, c.rows, "gone")).join("");
+}
+
+// ---- highlight / banish, with an Undo toast ----
+let undoFn = null, toastTimer = 0;
+function toast(text, fn) {
+  undoFn = fn; $("toastT").textContent = text; $("toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => ($("toast").hidden = true), 5000);
+}
+$("undo").addEventListener("click", () => { if (undoFn) undoFn(); undoFn = null; $("toast").hidden = true; });
+const nameOf = (id) => { const c = CARS.find((x) => x.id === id); return c ? c.title : ""; };
+function setHl(id, v) { saved.hl = saved.hl.filter((x) => x !== id); if (v) saved.hl.push(id); save(); render(); }
+function setBan(id, v) {
+  saved.ban = saved.ban.filter((x) => x !== id); saved.hl = saved.hl.filter((x) => !(v && x === id));
+  if (v) saved.ban.push(id); save(); render();
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-hl],[data-ban],[data-back],[data-open]"); if (!t) return;
+  if (t.dataset.hl) { const id = t.dataset.hl, v = !isHl(id); setHl(id, v); if (v) toast(nameOf(id) + " moved to Highlights", () => setHl(id, false)); if (dlg.open) openDetail(id); }
+  else if (t.dataset.ban) { const id = t.dataset.ban, was = isHl(id); setBan(id, true); if (dlg.open) dlg.close();
+    toast(nameOf(id) + " banished", () => { setBan(id, false); if (was) setHl(id, true); }); }
+  else if (t.dataset.back) { setBan(t.dataset.back, false); toast(nameOf(t.dataset.back) + " is back in the lineup", () => setBan(t.dataset.back, true)); }
+  else if (t.dataset.open) openDetail(t.dataset.open);
+});
+
+// ---- detail sheet ----
+const dlg = $("detail");
+const FEATS = ["Bluetooth", "Backup camera", "Cruise control", "Heated seats", "Keyless entry", "Push-button start", "USB/aux input"];
+const CAR_FIELDS = [
+  ["Engine", "Engine"], ["Transmission", "Transmission"], ["Drive", "Drive"], ["Gas/Hybrid", "Fuel"],
+  ["Horsepower", "Horsepower", (v) => v + " hp"], ["Curb weight (lb)", "Curb weight", (v) => num(v) + " lb"],
+  ["Power level", "Power level", (v) => badge(v, LEVEL[v]), true], ["Interior quality", "Interior quality"],
+  ["Size", "Size"], ["Body style", "Body"],
+  ["Cargo (cu ft)", "Cargo", (v) => v + " cu ft"], ["Rear legroom (in)", "Rear legroom", (v) => v + " in"],
+  ["Turning circle (ft)", "Turning circle", (v) => v + " ft"],
+  ["Annual repair cost $", "Repairs per year", (v, c) => a(L.repairpal(c), money(v)) + '<span class="src">RepairPal</span>', true],
+  ["Annual maintenance $", "Oil and tire rotations per year", (v) => money(v)],
+  ...FEATS.map((f) => [f, f]),
+  ["CR best used pick", "CR best used pick", (v) => v === "Yes" ? "Yes" : "", true],
+  ["Notes", "Notes"],
+];
+const ROW_FIELDS = (c, r) => {
+  const y = r.Year, sale = r["Number for sale (Autotrader)"];
+  return [
+    ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
+    ["5-year cost", money(r["5-year cost $"])],
+    ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet"],
+    ["Est. miles", num(r["Est. miles"])],
+    ["MPG", `${r["Combined MPG"]} combined · ${money(r["Annual fuel $"])} a year`],
+    ["Safety level", badge(r["Safety level (High/Med/Low)"], LEVEL[r["Safety level (High/Med/Low)"]])],
+    ["NHTSA", r["NHTSA stars"] ? a(L.nhtsa(c, y), badge(r["NHTSA stars"], nhtsaCls(r["NHTSA stars"]))) : "—"],
+    ["IIHS", r["IIHS award"] ? a(L.iihs(c, y, r), badge(r["IIHS award"], iihsCls(r["IIHS award"]))) : "—"],
+    ["Reliability", badge(r["Reliability (High/Med/Low)"], LEVEL[r["Reliability (High/Med/Low)"]])],
+    ["CR reliability (0–100)", a(L.cr(c, y), badge(typeof r["CR reliability (0-100)"] === "number" ? r["CR reliability (0-100)"] : "NA", crCls(r["CR reliability (0-100)"], 20)))],
+    ["CR owner satisfaction (0–100)", a(L.cr(c, y), badge(typeof r["CR owner satisfaction (0-100)"] === "number" ? r["CR owner satisfaction (0-100)"] : "NA", crCls(r["CR owner satisfaction (0-100)"], 40)))],
+    ["Number for sale", typeof sale === "number" ? a(L.autotrader(c, y), badge(num(sale) + " · " + saleLevel(sale), saleCls(sale))) : "—"],
+  ];
+};
+const dl = (pairs) => `<dl class="facts">${pairs.filter((p) => p[1] !== "" && p[1] != null).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
+const vlabel = (r) => r.variant ? `${r.Year} ${r.variant}` : String(r.Year);
+let curVar = {};
+function openDetail(id, vi) {
+  const c = CARS.find((x) => x.id === id); if (!c) return;
+  const rows = c.rows, matched = new Set(matchRows(c));
+  if (vi == null) vi = curVar[id] ?? Math.max(0, rows.findIndex((r) => matched.has(r)));
+  curVar[id] = vi;
+  const r = rows[vi];
+  const varies = (k) => new Set(rows.map((x) => JSON.stringify(x[k] ?? null))).size > 1;
+  const fmt = (f, v) => f[2] ? f[2](v, c) : esc(v);
+  const carPairs = [], rowExtra = [];
+  for (const f of CAR_FIELDS) {
+    const v = varies(f[0]) ? r[f[0]] : rows[0][f[0]];
+    if (v == null || v === "" || v === "NA") continue;
+    (varies(f[0]) ? rowExtra : carPairs).push([f[1], fmt(f, v)]);
+  }
+  const pick = rows.some((x) => x["Simon's pick"] === "Yes"), hl = isHl(id);
+  const y1 = rows[0].Year, y2 = rows[rows.length - 1].Year;
+  dlg.innerHTML = `
+    <div class="dtop">
+      <button type="button" id="dClose" title="Close" aria-label="Close">${ICON.x}</button>
+    </div>
+    <div class="dhero" style="--tone:${c.tone}">
+      <img src="${esc(c.ext)}" alt="${esc(c.brand + " " + c.title)}">
+      <div class="t">
+        ${pick ? '<span class="pickflag">★ Simon\'s pick</span>' : ""}
+        <span class="brand">${esc(c.brand)}</span>
+        <h2 id="dTitle">${esc(c.title)}</h2>
+        <span class="gen">${esc(c.gen)} · ${esc(yearsOf(rows))}</span>
+        ${rows[0].Summary ? `<p class="sum">${esc(rows[0].Summary)}</p>` : ""}
+        <div class="dacts">
+          <button type="button" class="hl${hl ? " on" : ""}" data-hl="${id}" aria-pressed="${hl}">${hl ? ICON.markOn + " Highlighted" : ICON.mark + " Highlight"}</button>
+          <button type="button" data-ban="${id}">${ICON.ban} Banish</button>
+        </div>
+      </div>
+    </div>
+    <div class="dbody">
+      <section>
+        <h3>${rows.length > 1 ? "Pick a version" : "This version"}</h3>
+        ${rows.length > 1 ? `<div class="vtabs" role="group" aria-label="Versions">${rows.map((x, i) =>
+          `<button type="button" data-vi="${i}" aria-pressed="${i === vi}" class="${matched.has(x) ? "" : "dim"}"><b>${esc(vlabel(x))}</b><small>${money(x["KBB private party $"])}</small></button>`).join("")}</div>` : ""}
+        <p class="dfoot" style="margin:0 0 8px">${esc(r.Description)}</p>
+        ${dl([...ROW_FIELDS(c, r), ...rowExtra])}
+        <a class="shop ext" href="${esc(L.autotrader(c, r.Year))}" target="_blank" rel="noopener">See ${esc(r.Year + " " + c.title)}s for sale on Autotrader</a>
+      </section>
+      <section>
+        <h3>The car${rows.length > 1 ? ", every version" : ""}</h3>
+        ${dl(carPairs)}
+      </section>
+      <section>
+        <h3>Inside</h3>
+        <img class="inter" src="${esc(c.int)}" alt="${esc(c.title)} dashboard and front seats" loading="lazy">
+      </section>
+      <section>
+        <h3>Look it up</h3>
+        <div class="links">
+          ${y1 !== y2 ? `<a class="ext" href="${esc(L.autotrader(c, y1, y2))}" target="_blank" rel="noopener">Autotrader, ${y1}–${y2}</a>` : ""}
+          <a class="ext" href="${esc(L.kbb(c, r.Year))}" target="_blank" rel="noopener">Kelley Blue Book</a>
+          ${L.nhtsa(c, r.Year) ? `<a class="ext" href="${esc(L.nhtsa(c, r.Year))}" target="_blank" rel="noopener">NHTSA crash tests and recalls</a>` : ""}
+          ${L.iihs(c, r.Year, r) ? `<a class="ext" href="${esc(L.iihs(c, r.Year, r))}" target="_blank" rel="noopener">IIHS ratings</a>` : ""}
+          <a class="ext" href="${esc(L.cr(c, r.Year))}" target="_blank" rel="noopener">Consumer Reports</a>
+          <a class="ext" href="${esc(L.repairpal(c))}" target="_blank" rel="noopener">RepairPal</a>
+        </div>
+      </section>
+    </div>`;
+  if (!dlg.open) { dlg.showModal(); dlg.scrollTop = 0; }
+  $("dClose").addEventListener("click", () => dlg.close());
+}
+dlg.addEventListener("click", (e) => {
+  if (e.target === dlg) { dlg.close(); return; }
+  const b = e.target.closest("[data-vi]"); if (!b) return;
+  const id = CARS.find((c) => dlg.querySelector(`[data-ban="${c.id}"]`))?.id;
+  if (id) { const top = dlg.scrollTop; openDetail(id, +b.dataset.vi); dlg.scrollTop = top; dlg.querySelector(`[data-vi="${b.dataset.vi}"]`)?.focus(); }
+});
+
+// ---- credits ----
+const cr = [];
+for (const c of CARS) for (const [k, kind] of [["credExt", "outside"], ["credInt", "inside"]]) if (c[k]) cr.push(`<li>${esc(c.brand + " " + c.title + " (" + c.gen + "), " + kind)}: ${esc(c[k].replace(/^Photo: /, ""))}</li>`);
+$("credits").innerHTML = [...new Set(cr)].join("");
+
+render();
+})();
+</script>
+
+</body></html>

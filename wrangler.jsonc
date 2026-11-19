@@ -1,0 +1,15 @@
+// Cloudflare Worker that serves the static site in public/ at zombe.es/driverdecider/.
+// Files live under public/driverdecider/ so their URLs already start with /driverdecider/.
+{
+  "name": "driverdecider",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "zombe.es/driverdecider", "zone_name": "zombe.es" },
+    { "pattern": "zombe.es/driverdecider/*", "zone_name": "zombe.es" }
+  ]
+}
