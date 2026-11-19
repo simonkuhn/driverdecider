@@ -188,7 +188,11 @@ button { font: inherit; color: inherit; }
 .cmp .car { display: grid; gap: 2px; min-width: 128px; }
 .cmp .car img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; margin-bottom: 4px; background: var(--line); }
 .cmp .car .brand { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.cmp .car button.open { all: unset; cursor: pointer; font: 400 1.35rem/1 var(--display); text-transform: uppercase; color: var(--ink); }
+.cmp .car button.open { all: unset; cursor: pointer; display: grid; gap: 2px; border-radius: 8px; }
+.cmp .car .ttl2 { font: 400 1.35rem/1 var(--display); text-transform: uppercase; color: var(--ink); }
+.cmp .car .more { font-size: .76rem; font-weight: 600; color: var(--muted); }
+.cmp .car button.open:hover .more, .cmp .car button.open:hover .ttl2 { color: var(--accent); }
+.cmp .car button.open:hover img { filter: brightness(1.08); }
 .cmp .car button.open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .cmp .car .yrs { font-size: .8rem; color: var(--accent); font-weight: 600; }
 .cmp .car .rm { justify-self: start; margin-top: 4px; font: 600 .76rem var(--body); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
@@ -472,6 +476,11 @@ const KEY = "driverdecider.v1";
 // first visit starts with these in My Picks; after that, whatever this browser saved
 let saved = { hl: ["impreza4", "impreza5", "corolla10", "corolla11"], ban: [] }, fresh = true;
 try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.hl) && Array.isArray(s.ban)) { saved = s; fresh = false; } } catch {}
+// a shared link carries the whole page in its address (?h=picks&x=banished&v=year...); it wins over this browser's saved state
+const Q = new URLSearchParams(location.search), FROM_URL = [...Q.keys()].length > 0;
+const DEF_HL = ["impreza4", "impreza5", "corolla10", "corolla11"];
+const listQ = (k, d) => (Q.has(k) ? Q.get(k).split(",").filter(Boolean) : d);
+if (FROM_URL) { saved = { hl: listQ("h", DEF_HL), ban: listQ("x", []) }; fresh = false; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch {} };
 const isHl = (id) => saved.hl.includes(id), isBan = (id) => saved.ban.includes(id);
 const modelOf = (key) => String(key).split("@")[0];
@@ -532,7 +541,14 @@ const GROUPS = [];
 const atLeast = (v, min) => min === "High" ? v === "High" : v === "High" || v === "Med";
 const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
 const ui = { sort: "cost", max: "", type: "", drive: "", fuel: "", view: "model", safe: "", rel: "" };
+const UI_DEF = { ...ui };
 try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
+const UIQ = { view: "v", sort: "s", max: "p", type: "t", drive: "d", fuel: "f", safe: "sf", rel: "r", cmp: "c", same: "o", costOpen: "b", fold: "fl" };
+if (FROM_URL) {
+  for (const k of Object.keys(ui)) delete ui[k];
+  Object.assign(ui, UI_DEF);
+  for (const [k, q] of Object.entries(UIQ)) if (Q.has(q)) ui[k] = ["same", "costOpen", "fold"].includes(k) ? Q.get(q) === "1" : Q.get(q);
+}
 const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
 const rowPasses = (r, skip) => {
@@ -594,7 +610,7 @@ const setFold = () => { const f = !!ui.fold, n = [ui.type, ui.drive, ui.fuel, ui
   $("fold").closest(".row2").classList.toggle("folded", f); $("fold").setAttribute("aria-expanded", String(!f));
   $("fold").innerHTML = `<span>${f ? "Show filters" : "Hide filters"}</span><svg class="funnel" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 4.5h17l-6.5 8v6l-4 2v-8z"/></svg>`;
   $("fold").classList.toggle("on", n > 0); };
-$("fold").addEventListener("click", () => { ui.fold = !ui.fold; saveUi(); setFold(); });
+$("fold").addEventListener("click", () => { ui.fold = !ui.fold; saveUi(); setFold(); writeUrl(); });
 for (const id of ["safe", "rel"]) { if (!["", "High", "Med"].includes(ui[id])) ui[id] = ""; $(id).value = ui[id]; $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); }); }
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
 $("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
@@ -653,7 +669,21 @@ const SECT_ICON = {
   gone: ICON.ban,
 };
 const closed = { gone: true };
-try { Object.assign(closed, JSON.parse(localStorage.getItem(KEY + ".closed") || "{}")); } catch {}
+if (FROM_URL) { if (Q.has("z")) { closed.gone = false; for (const id of listQ("z", [])) closed[id] = true; } }
+else try { Object.assign(closed, JSON.parse(localStorage.getItem(KEY + ".closed") || "{}")); } catch {}
+// mirror the page into the address bar, leaving out anything still at its default
+function writeUrl() {
+  const q = new URLSearchParams();
+  for (const [k, p] of Object.entries(UIQ)) { const v = ui[k]; if (v && v !== UI_DEF[k]) q.set(p, v === true ? "1" : v); }
+  const same = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
+  if (!same(saved.hl, DEF_HL)) q.set("h", saved.hl.join(","));
+  if (saved.ban.length) q.set("x", saved.ban.join(","));
+  const shut = Object.keys(closed).filter((k) => closed[k]);
+  if (!same(shut, ["gone"])) q.set("z", shut.join(","));
+  if (dlg.open && dlg.dataset.car) { q.set("car", dlg.dataset.car); if (curVar[dlg.dataset.car]) q.set("vi", curVar[dlg.dataset.car]); }
+  const s = q.toString().replace(/%2C/g, ",").replace(/%40/g, "@");
+  try { history.replaceState(null, "", location.pathname + (s ? "?" + s : "") + location.hash); } catch {}
+}
 const isPick = (c) => c.rows.some((r) => r["Simon's pick"] === "Yes");
 function section(id, title, items, mode) {
   if (!items.length) return "";
@@ -685,6 +715,7 @@ function items() {
 }
 function render() {
   setFold();
+  queueMicrotask(writeUrl);
   renderChips();
   const hls = [], picks = [], rest = [], gone = [];
   const all = items();
@@ -816,8 +847,8 @@ function cmpCell(it, f) {
 function compareTable(list) {
   const head = list.map((it) => {
     const yrs = it.year ? String(it.year) : yearsOf(it.rows);
-    return `<th scope="col"><div class="car"><img src="${esc(it.c.card || it.c.ext)}" alt=""><span class="brand">${esc(it.c.brand)}</span>
-      <button type="button" class="open" data-open="${esc(it.key)}">${esc(it.c.title)}</button><span class="yrs">${esc(yrs)}</span>
+    return `<th scope="col"><div class="car"><button type="button" class="open" data-open="${esc(it.key)}" aria-label="Details for ${esc(it.c.brand + " " + it.c.title + " " + yrs)}"><img src="${esc(it.c.card || it.c.ext)}" alt=""><span class="brand">${esc(it.c.brand)}</span>
+      <span class="ttl2">${esc(it.c.title)}</span><span class="yrs">${esc(yrs)}</span><span class="more">Details ›</span></button>
       <button type="button" class="rm" data-hl="${esc(it.key)}" aria-label="Remove ${esc(nameOf(it.key))} from My Picks">Remove</button></div></th>`;
   }).join("");
   let body = "";
@@ -972,7 +1003,7 @@ function openDetail(key, vi) {
   if (!dlg.open) { dlg.showModal(); dlg.scrollTop = 0; }
   { const t = dlg.querySelector(".vtabs"), on = t?.querySelector('[aria-pressed="true"]');
     if (on && on.offsetLeft + on.offsetWidth > t.clientWidth) t.scrollLeft = on.offsetLeft - t.clientWidth / 2 + on.offsetWidth / 2; }
-  markMore(); markTabs();
+  markMore(); markTabs(); writeUrl();
   $("dClose").addEventListener("click", () => dlg.close());
 }
 const markMore = () => dlg.querySelector(".dmore")?.classList.toggle("end", dlg.scrollTop + dlg.clientHeight >= dlg.scrollHeight - 24);
@@ -985,7 +1016,7 @@ dlg.addEventListener("click", (e) => {
   if (e.target.closest(".morebtn")) { dlg.scrollBy({ top: dlg.clientHeight * .7, behavior: "smooth" }); return; }
   const ct = e.target.closest(".costtog:not([data-costcmp])");
   if (ct) { ui.costOpen = !ui.costOpen; saveUi(); ct.nextElementSibling.hidden = !ui.costOpen; ct.setAttribute("aria-expanded", String(ui.costOpen));
-    ct.querySelector("span").textContent = ui.costOpen ? "Hide breakdown" : "Show breakdown"; markMore(); return; }
+    ct.querySelector("span").textContent = ui.costOpen ? "Hide breakdown" : "Show breakdown"; markMore(); writeUrl(); return; }
   const info = e.target.closest(".info");
   if (info) { const t = info.closest("div").querySelector(".tipx"), open = t.hidden; t.hidden = !open; info.setAttribute("aria-expanded", String(open)); markMore(); return; }
   const b = e.target.closest("[data-vi]"); if (!b) return;
@@ -999,6 +1030,11 @@ for (const c of CARS) for (const [k, kind] of [["credExt", "outside"], ["credInt
 $("credits").innerHTML = [...new Set(cr)].join("");
 
 render();
+dlg.addEventListener("close", writeUrl);
+if (FROM_URL) {
+  save(); saveUi(); try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {}
+  const car = Q.get("car"); if (car && CARS.some((c) => c.id === car)) openDetail(car, Q.has("vi") ? +Q.get("vi") || 0 : undefined);
+}
 // keep section jumps clear of the sticky filter bar
 try { const f = document.querySelector(".filters"); new ResizeObserver(() => document.documentElement.style.setProperty("--fh", f.offsetHeight + "px")).observe(f); } catch {}
 })();
