@@ -18,6 +18,7 @@
   --line: #dcdfdc;
   --accent: #17644a;
   --accent-ink: #ffffff;
+  --road: #2a2e31;
   --gold: #b07a00;
   --gold-bg: #f5c542;
   --stub: #f4efe2;
@@ -37,7 +38,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
-    --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+    --road: #33383c; --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
     --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
     --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
     --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -47,7 +48,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
-  --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+  --road: #33383c; --accent: #5cc69c; --accent-ink: #06150f; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
   --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
   --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
   --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -74,7 +75,7 @@ button { font: inherit; color: inherit; }
 .masthead { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
   gap: 6px 24px; padding-bottom: 24px; }
 .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; border-radius: 2px;
-  background: linear-gradient(90deg, var(--gold-bg) 0 26px, transparent 26px 44px) 0 50% / 44px 3px repeat-x, var(--ink); }
+  background: linear-gradient(90deg, var(--gold-bg) 0 26px, transparent 26px 44px) 0 50% / 44px 3px repeat-x, var(--road); }
 .wordmark { margin: 0; font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
 .wordmark b { font-weight: 400; color: var(--accent); }
 .tagline { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
