@@ -106,7 +106,7 @@ button { font: inherit; color: inherit; }
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%) !important;
   background-position: right 16px center, right 11px center !important; background-size: 5px 5px, 5px 5px !important; background-repeat: no-repeat !important; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
-  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 240px; }
+  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 230px; }
 @media (max-width: 600px) { .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type { flex-basis: 100%; } .count { flex-basis: 100%; margin-left: 0; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
@@ -285,6 +285,10 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
     <div class="row2">
       <label class="sr" for="type">Type of car</label>
       <select id="type"><option value="">All types of vehicles</option></select>
+      <label class="sr" for="drive">Drive</label>
+      <select id="drive"><option value="">Any drive</option></select>
+      <label class="sr" for="fuel">Fuel type</label>
+      <select id="fuel"><option value="">Any fuel</option></select>
       <label class="sr" for="sort">Sort</label>
       <select id="sort">
         <option value="price">Sort by: Cheapest</option>
@@ -387,19 +391,19 @@ const typesOf = (r) => r["Body style"] === "Convertible" ? ["Convertible"] : bod
 const TYPE_ORDER = ["Subcompact hatchback", "Compact hatchback", "Compact sedan", "Mid-size sedan", "Convertible"];
 const fuelOf = (r) => /Hybrid/.test(r["Gas/Hybrid"]) ? "Hybrid" : /premium/.test(r["Gas/Hybrid"]) ? "Premium gas" : "Regular gas";
 const GROUPS = [
-  { id: "fuel", chips: ["Hybrid", "Regular gas", "Premium gas"].map((v) => ({ v, label: v, test: (r) => fuelOf(r) === v })) },
-  { id: "awd", chips: [{ v: "awd", label: "All-wheel drive", test: (r) => r.Drive === "All-wheel drive" }] },
   { id: "safe", chips: [{ v: "safe", label: "Safety: High", test: (r) => r["Safety level (High/Med/Low)"] === "High" }] },
   { id: "rel", chips: [{ v: "rel", label: "Reliability: High", test: (r) => r["Reliability (High/Med/Low)"] === "High" }] },
 ];
 const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
-const ui = { sort: "price", max: "", type: "" };
+const ui = { sort: "price", max: "", type: "", drive: "", fuel: "" };
 try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
 const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
 const rowPasses = (r, skip) => {
   if (ui.max && r["KBB private party $"] > +ui.max) return false;
   if (ui.type && !typesOf(r).includes(ui.type)) return false;
+  if (ui.drive && r.Drive !== ui.drive) return false;
+  if (ui.fuel && fuelOf(r) !== ui.fuel) return false;
   for (const g of GROUPS) {
     if (g.id === skip || !on[g.id].size) continue;
     if (!g.chips.some((c) => on[g.id].has(c.v) && c.test(r))) return false;
@@ -407,7 +411,7 @@ const rowPasses = (r, skip) => {
   return true;
 };
 const matchRows = (c) => c.rows.filter((r) => rowPasses(r));
-const anyFilter = () => !!ui.max || !!ui.type || GROUPS.some((g) => on[g.id].size);
+const anyFilter = () => !!ui.max || !!ui.type || !!ui.drive || !!ui.fuel || GROUPS.some((g) => on[g.id].size);
 
 function renderChips() {
   const parts = [];
@@ -433,10 +437,19 @@ $("chips").addEventListener("click", (e) => {
   $("type").value = ui.type;
   $("type").addEventListener("change", (e) => { ui.type = e.target.value; saveUi(); render(); });
 }
+for (const [id, order, label] of [["drive", ["Front-wheel drive", "All-wheel drive", "Rear-wheel drive"], (v) => v],
+                                  ["fuel", ["Regular gas", "Premium gas", "Hybrid"], (v) => v]]) {
+  const have = new Set(CARS.flatMap((c) => c.rows.map((r) => id === "drive" ? r.Drive : fuelOf(r))));
+  const list = order.filter((v) => have.has(v));
+  $(id).insertAdjacentHTML("beforeend", list.map((v) => `<option value="${esc(v)}">${esc(label(v))}</option>`).join(""));
+  if (!list.includes(ui[id])) ui[id] = "";
+  $(id).value = ui[id];
+  $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); });
+}
 $("sort").value = ui.sort; $("max").value = ui.max;
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
 $("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
-$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; ui.type = ""; $("max").value = ""; $("type").value = ""; saveUi(); render(); });
+$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; ui.type = ""; ui.drive = ""; ui.fuel = ""; for (const id of ["max", "type", "drive", "fuel"]) $(id).value = ""; saveUi(); render(); });
 
 // ---- sorting ----
 const best = (rows, k, f = Math.min) => f(...rows.map((r) => (typeof r[k] === "number" ? r[k] : f === Math.min ? Infinity : -Infinity)));
