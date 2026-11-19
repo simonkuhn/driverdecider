@@ -109,7 +109,7 @@ button { font: inherit; color: inherit; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 0 1 auto; max-width: 100%; }
 @media (max-width: 600px) {
-  .fold { display: inline-flex; align-items: center; gap: 7px; flex: none; font: 600 .86rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
+  .fold { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: none; width: 9.6rem; font: 600 .86rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
   .fold .funnel { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
   .fold.on .funnel { fill: var(--accent); stroke: var(--accent); }
   .row2.folded > select:not(#sort):not(#max) { display: none; }
