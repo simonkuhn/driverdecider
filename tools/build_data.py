@@ -57,10 +57,11 @@ def variant(x,g):
     if g in('impreza4',) and x['Body style']!='Sedan or hatchback': t=x['Body style']
     return t
 used=set(); out=[]
-def photo(slug,kind,w):
-    src=P+f'{slug}_{kind}.jpg'; dst=f'img/{slug}_{kind}.jpg'
+def photo(slug,kind,w,name=None,q=80):
+    # name: the output suffix, so one source photo can give a full-size and a small card copy
+    src=P+f'{slug}_{kind}.jpg'; dst=f'img/{slug}_{name or kind}.jpg'
     if dst not in used:
-        im=Image.open(src).convert('RGB'); im.thumbnail((w,w*2)); im.save(OUT+dst,quality=80,optimize=True,progressive=True); used.add(dst)
+        im=Image.open(src).convert('RGB'); im.thumbnail((w,w*2)); im.save(OUT+dst,quality=q,optimize=True,progressive=True); used.add(dst)
     return dst
 def tone(slug):
     im=Image.open(P+f'{slug}_ext.jpg').convert('RGB').resize((60,40))
@@ -77,7 +78,7 @@ for gid,test,title,brand,gen,ext,intr in G:
     for x in rs:
         d={k:clean(v) for k,v in x.items()}; d['variant']=variant(x,gid); items.append(d)
     ms,mm,iihs,nh=SL[gid]
-    out.append(dict(id=gid,title=title,brand=brand,gen=gen,ext=photo(ext,'ext',900),int=photo(intr,'int',900),tone=tone(ext),
+    out.append(dict(id=gid,title=title,brand=brand,gen=gen,ext=photo(ext,'ext',900),card=photo(ext,'ext',680,'card',72),int=photo(intr,'int',900),tone=tone(ext),
         credExt=creds.get(ext+'_ext',''),credInt=creds.get(intr+'_int',''),make=ms,model=mm,kbbModel=KBBM.get(gid,mm),iihs=iihs,nhtsa=nh,rows=items))
 left=[x['Model']+str(x['Year']) for x in rows if id(x) not in taken]; assert not left,left
 open(OUT+'data.js','w').write('window.CARS='+json.dumps(out,ensure_ascii=False,separators=(',',':'))+';\n')
