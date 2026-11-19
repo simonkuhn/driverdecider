@@ -102,13 +102,13 @@ button { font: inherit; color: inherit; }
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .row2 { flex-wrap: wrap; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
-  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 220px; }
-@media (max-width: 600px) { .row2 select { flex: 1 1 calc(33% - 8px); max-width: none; } .count { flex-basis: 100%; margin-left: 0; } }
+  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 240px; }
+@media (max-width: 600px) { .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type { flex-basis: 100%; } .count { flex-basis: 100%; margin-left: 0; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
 
 /* sections: a bar with a colored left edge, an icon, a count and a Collapse button */
-.sect { margin-top: 18px; }
+.sect { margin-top: 18px; scroll-margin-top: 12px; }
 .bar { margin: 0 0 14px; display: flex; align-items: center; gap: 4px 12px; padding: 10px 10px 10px 14px; border-radius: 10px;
   border-left: 8px solid var(--accent); background: color-mix(in srgb, var(--line) 55%, var(--surface)); }
 .bar h2 { margin: 0; display: flex; align-items: center; gap: 9px; font: 400 1.7rem/1 var(--display); text-transform: uppercase; letter-spacing: .01em; min-width: 0; }
@@ -236,7 +236,30 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .feat { display: grid; grid-template-columns: 1fr; }
 .dfoot { color: var(--muted); font-size: .8rem; }
 
-.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 20;
+/* section nav: a rail down the right side of a wide screen, whose lane is kept from the start so nothing
+   moves when it appears; shown only when there is more than one section. A phone gets a Sections button. */
+.jump { position: fixed; z-index: 8; right: 10px; top: 50%; transform: translateY(-50%); display: none; gap: 2px; width: 104px; padding: 8px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+.jump button { display: grid; text-align: left; border: 0; border-radius: 6px; background: transparent; color: var(--ink); padding: 6px 7px; cursor: pointer;
+  font: 700 .8rem/1.2 var(--body); }
+.jump button .jn { font-weight: 500; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.jump button[aria-current="true"] { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.jumpbtn { position: fixed; z-index: 9; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: none; font: 700 .85rem var(--body); border: 0; border-radius: 999px; padding: 10px 16px; background: var(--accent); color: var(--accent-ink);
+  box-shadow: var(--shadow); cursor: pointer; }
+@media (min-width: 760px) {
+  body { padding-right: 112px; }
+  .jump { display: grid; right: max(10px, (100vw - 1240px - 112px) / 2 - 50px); }
+  .jump[data-off] { visibility: hidden; }
+}
+@media (max-width: 759px) {
+  .jumpbtn:not([hidden]) { display: block; }
+  .jump { top: auto; transform: none; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(66px + env(safe-area-inset-bottom, 0px)); width: 190px; }
+  .jump.open:not([data-off]) { display: grid; }
+  .jump button { display: flex; justify-content: space-between; gap: 10px; font-size: .92rem; padding: 10px; }
+  .jump button .jn { font-size: inherit; }
+}
+.toast { position: fixed; left: 50%; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 20;
   background: var(--ink); color: var(--bg); border-radius: 999px; padding: 10px 10px 10px 16px; display: flex; gap: 12px; align-items: center;
   box-shadow: var(--shadow); font-size: .9rem; max-width: calc(100vw - 32px); }
 .toast button { border: 0; background: var(--bg); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
@@ -257,16 +280,16 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
     <div class="chips" id="chips"></div>
     <div class="row2">
       <label class="sr" for="type">Type of car</label>
-      <select id="type"><option value="">All types</option></select>
+      <select id="type"><option value="">All types of vehicles</option></select>
       <label class="sr" for="sort">Sort</label>
       <select id="sort">
-        <option value="price">Cheapest</option>
-        <option value="cost">Lowest 5-year cost</option>
-        <option value="mpg">Best MPG</option>
-        <option value="safety">Safest</option>
-        <option value="rel">Most reliable</option>
-        <option value="sale">Most for sale</option>
-        <option value="name">A to Z</option>
+        <option value="price">Sort by: Cheapest</option>
+        <option value="cost">Sort by: Lowest 5-year cost</option>
+        <option value="mpg">Sort by: Best MPG</option>
+        <option value="safety">Sort by: Safest</option>
+        <option value="rel">Sort by: Most reliable</option>
+        <option value="sale">Sort by: Most for sale</option>
+        <option value="name">Sort by: A to Z</option>
       </select>
       <label class="sr" for="max">Highest price</label>
       <select id="max">
@@ -290,6 +313,8 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
   </footer>
 </div>
 
+<nav class="jump" id="jump" aria-label="Sections" data-off></nav>
+<button type="button" class="jumpbtn" id="jumpbtn" aria-expanded="false" aria-controls="jump" hidden>Sections</button>
 <dialog class="detail" id="detail" aria-labelledby="dTitle"></dialog>
 <div class="toast" id="toast" role="status" hidden><span id="toastT"></span><button type="button" id="undo">Undo</button></div>
 
@@ -487,10 +512,37 @@ function render() {
     section("picks", "Simon's picks", picks) +
     section("rest", picks.length || hls.length ? "The rest" : "All cars", rest) +
     section("gone", "Banished", gone, "gone");
+  renderJump([["hl", "Highlights", hls], ["picks", "Simon's picks", picks], ["rest", picks.length || hls.length ? "The rest" : "All cars", rest], ["gone", "Banished", gone]].filter((x) => x[2].length));
   const shown = hls.length + picks.length + rest.length;
   $("empty").hidden = shown > 0;
   $("count").innerHTML = shown + " of " + (CARS.length - gone.length) + " cars" + (anyFilter() ? ' · <button type="button" class="clear" data-clear>Clear filters</button>' : "");
 }
+function renderJump(list) {
+  const nav = $("jump");
+  nav.innerHTML = list.map(([id, title, items]) => `<button type="button" data-jump="${id}"><span>${esc(title)}</span><span class="jn">${items.length}</span></button>`).join("");
+  const many = list.length > 1;
+  nav.toggleAttribute("data-off", !many);
+  $("jumpbtn").hidden = !many;
+  if (!many) { nav.classList.remove("open"); $("jumpbtn").setAttribute("aria-expanded", "false"); }
+  markJump();
+}
+function markJump() {
+  const bars = [...document.querySelectorAll(".sect")]; let cur = bars[0];
+  for (const b of bars) if (b.getBoundingClientRect().top < innerHeight * 0.35) cur = b;
+  document.querySelectorAll("[data-jump]").forEach((b) => b.setAttribute("aria-current", String(!!cur && cur.classList.contains(b.dataset.jump))));
+}
+addEventListener("scroll", () => requestAnimationFrame(markJump), { passive: true });
+$("jumpbtn").addEventListener("click", () => {
+  const open = $("jump").classList.toggle("open"); $("jumpbtn").setAttribute("aria-expanded", String(open));
+});
+$("jump").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-jump]"); if (!b) return;
+  const id = b.dataset.jump;
+  if (closed[id]) { closed[id] = false; try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {} render(); }
+  const sec = document.querySelector(".sect." + id);
+  if (sec) sec.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  $("jump").classList.remove("open"); $("jumpbtn").setAttribute("aria-expanded", "false");
+});
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tog]");
   if (t) { const id = t.dataset.tog; closed[id] = !closed[id]; try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {} render(); document.querySelector(`[data-tog="${id}"]`)?.focus(); return; }
