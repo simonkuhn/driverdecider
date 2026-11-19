@@ -111,8 +111,8 @@ button { font: inherit; color: inherit; }
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%) !important;
   background-position: right 16px center, right 11px center !important; background-size: 5px 5px, 5px 5px !important; background-repeat: no-repeat !important; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
-  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 230px; }
-@media (max-width: 600px) { .seg { flex: 1 1 100%; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type { flex-basis: 100%; } .count { flex-basis: 100%; margin-left: 0; } }
+  border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 0 1 auto; max-width: 100%; }
+@media (max-width: 600px) { .seg { flex: 1 1 100%; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type, .row2 #sort { flex-basis: 100%; } .count { flex: 1 1 calc(50% - 8px); margin-left: 0; padding-left: 4px; white-space: normal; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
 
@@ -318,7 +318,6 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
   </header>
 
   <div class="filters" role="search" aria-label="Filters">
-    <div class="chips" id="chips"></div>
     <div class="row2">
       <div class="seg" id="view" role="group" aria-label="Show cars"><button type="button" data-view="model" aria-pressed="true">By model</button><button type="button" data-view="year" aria-pressed="false">By year</button></div>
       <label class="sr" for="type">Type of car</label>
@@ -327,6 +326,10 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
       <select id="drive"><option value="">Any drivetrain</option></select>
       <label class="sr" for="fuel">Fuel type</label>
       <select id="fuel"><option value="">Any fuel type</option></select>
+      <label class="sr" for="safe">Safety level</label>
+      <select id="safe"><option value="">Any safety level</option><option value="High">Safety: High only</option><option value="Med">Safety: Medium or High</option></select>
+      <label class="sr" for="rel">Reliability</label>
+      <select id="rel"><option value="">Any reliability</option><option value="High">Reliability: High only</option><option value="Med">Reliability: Medium or High</option></select>
       <label class="sr" for="sort">Sort</label>
       <select id="sort">
         <option value="cost">Sort by: Lowest 5-year cost</option>
@@ -340,10 +343,10 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
       <label class="sr" for="max">Highest price</label>
       <select id="max">
         <option value="">Up to $11,000</option>
-        <option value="7000">Up to $7,000</option>
-        <option value="8000">Up to $8,000</option>
-        <option value="9000">Up to $9,000</option>
         <option value="10000">Up to $10,000</option>
+        <option value="9000">Up to $9,000</option>
+        <option value="8000">Up to $8,000</option>
+        <option value="7000">Up to $7,000</option>
       </select>
       <span class="count" id="count"></span>
     </div>
@@ -432,12 +435,10 @@ const bodyOf = (r) => r["Body style"] === "Sedan or hatchback" ? ["Sedan", "Hatc
 const typesOf = (r) => r["Body style"] === "Convertible" ? ["Convertible"] : bodyOf(r).map((b) => r.Size + " " + b.toLowerCase());
 const TYPE_ORDER = ["Subcompact hatchback", "Compact hatchback", "Compact sedan", "Mid-size sedan", "Convertible"];
 const fuelOf = (r) => /Hybrid/.test(r["Gas/Hybrid"]) ? "Hybrid" : /premium/.test(r["Gas/Hybrid"]) ? "Premium gas" : "Regular gas";
-const GROUPS = [
-  { id: "safe", chips: [{ v: "safe", label: "Safety: High", test: (r) => r["Safety level (High/Med/Low)"] === "High" }] },
-  { id: "rel", chips: [{ v: "rel", label: "Reliability: High", test: (r) => r["Reliability (High/Med/Low)"] === "High" }] },
-];
+const GROUPS = [];
+const atLeast = (v, min) => min === "High" ? v === "High" : v === "High" || v === "Med";
 const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
-const ui = { sort: "cost", max: "", type: "", drive: "", fuel: "", view: "model" };
+const ui = { sort: "cost", max: "", type: "", drive: "", fuel: "", view: "model", safe: "", rel: "" };
 try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
 const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
@@ -446,6 +447,8 @@ const rowPasses = (r, skip) => {
   if (ui.type && !typesOf(r).includes(ui.type)) return false;
   if (ui.drive && r.Drive !== ui.drive) return false;
   if (ui.fuel && fuelOf(r) !== ui.fuel) return false;
+  if (ui.safe && !atLeast(r["Safety level (High/Med/Low)"], ui.safe)) return false;
+  if (ui.rel && !atLeast(r["Reliability (High/Med/Low)"], ui.rel)) return false;
   for (const g of GROUPS) {
     if (g.id === skip || !on[g.id].size) continue;
     if (!g.chips.some((c) => on[g.id].has(c.v) && c.test(r))) return false;
@@ -453,9 +456,10 @@ const rowPasses = (r, skip) => {
   return true;
 };
 const matchRows = (c) => c.rows.filter((r) => rowPasses(r));
-const anyFilter = () => !!ui.max || !!ui.type || !!ui.drive || !!ui.fuel || GROUPS.some((g) => on[g.id].size);
+const anyFilter = () => !!ui.max || !!ui.safe || !!ui.rel || !!ui.type || !!ui.drive || !!ui.fuel || GROUPS.some((g) => on[g.id].size);
 
 function renderChips() {
+  if (!$("chips")) return;
   const parts = [];
   GROUPS.forEach((g, i) => {
     if (i) parts.push('<span class="sep" aria-hidden="true"></span>');
@@ -466,7 +470,7 @@ function renderChips() {
   });
   $("chips").innerHTML = parts.join("");
 }
-$("chips").addEventListener("click", (e) => {
+$("chips")?.addEventListener("click", (e) => {
   const b = e.target.closest(".chip"); if (!b) return;
   const s = on[b.dataset.g]; s.has(b.dataset.v) ? s.delete(b.dataset.v) : s.add(b.dataset.v);
   saveUi(); render();
@@ -492,9 +496,10 @@ const setView = () => $("view").querySelectorAll("button").forEach((b) => b.setA
 setView();
 $("view").addEventListener("click", (e) => { const b = e.target.closest("[data-view]"); if (!b) return; ui.view = b.dataset.view; setView(); saveUi(); render(); });
 $("sort").value = ui.sort; $("max").value = ui.max;
+for (const id of ["safe", "rel"]) { if (!["", "High", "Med"].includes(ui[id])) ui[id] = ""; $(id).value = ui[id]; $(id).addEventListener("change", (e) => { ui[id] = e.target.value; saveUi(); render(); }); }
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
 $("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
-$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; ui.type = ""; ui.drive = ""; ui.fuel = ""; for (const id of ["max", "type", "drive", "fuel"]) $(id).value = ""; saveUi(); render(); });
+$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; ui.type = ""; ui.drive = ""; ui.fuel = ""; ui.safe = ""; ui.rel = ""; for (const id of ["max", "type", "drive", "fuel", "safe", "rel"]) $(id).value = ""; saveUi(); render(); });
 
 // ---- sorting ----
 const best = (rows, k, f = Math.min) => f(...rows.map((r) => (typeof r[k] === "number" ? r[k] : f === Math.min ? Infinity : -Infinity)));
