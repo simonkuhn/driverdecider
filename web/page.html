@@ -7,7 +7,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: a wordmark over a lane-line rule, a sticky strip of filter chips, then a wall of
-   movie-poster cards (two across on an iPhone), each with a ticket-stub price strip.
+   movie-poster cards (two across on an iPhone, three or four on a desktop) in sections with colored bars:
+   Highlights, Simon's picks, the rest, Banished.
    Color: cool asphalt-tinted paper + ink, one road-sign green accent, gold for Simon's picks. */
 :root {
   --bg: #f2f3f1;
@@ -79,7 +80,7 @@ button { font: inherit; color: inherit; }
 .tagline { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
 
 /* filters: sticky strip of chips, then sort and price */
-.filters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+.filters { background: var(--bg);
   margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0 calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
   padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 16px;
@@ -95,23 +96,36 @@ button { font: inherit; color: inherit; }
 .sep { flex: none; width: 1px; align-self: stretch; margin: 6px 3px; background: var(--line); }
 .row2 { display: flex; gap: 8px; align-items: center; margin-top: 8px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.row2 { flex-wrap: wrap; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 1 1 0; max-width: 220px; }
+@media (max-width: 600px) { .row2 select { flex: 1 1 calc(33% - 8px); max-width: none; } .count { flex-basis: 100%; margin-left: 0; } }
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .clear { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .85rem; padding: 4px 0; cursor: pointer; white-space: nowrap; }
 
-/* sections */
-.sect { margin-top: 22px; }
-.sbar { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; }
-.sbar h2 { margin: 0; font: 400 1.9rem/1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
-.sbar .n { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
-.sbar .act { margin-left: auto; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: .88rem; cursor: pointer; padding: 6px 0; }
+/* sections: a bar with a colored left edge, an icon, a count and a Collapse button */
+.sect { margin-top: 18px; }
+.bar { margin: 0 0 14px; display: flex; align-items: center; gap: 4px 12px; padding: 10px 10px 10px 14px; border-radius: 10px;
+  border-left: 8px solid var(--accent); background: color-mix(in srgb, var(--line) 55%, var(--surface)); }
+.bar h2 { margin: 0; display: flex; align-items: center; gap: 9px; font: 400 1.7rem/1 var(--display); text-transform: uppercase; letter-spacing: .01em; min-width: 0; }
+.bar h2 svg { width: 21px; height: 21px; flex: none; color: var(--accent); }
+.bar .n { color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar .tog { margin-left: auto; flex: none; font: 600 .84rem var(--body); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--muted); border-radius: 8px; padding: 0 12px; min-height: 34px; cursor: pointer; }
+.sect.hl .bar { border-left-color: var(--gold-bg); background: color-mix(in srgb, var(--gold-bg) 18%, var(--surface)); }
+.sect.hl .bar h2 svg { color: var(--gold); }
+.sect.picks .bar { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.sect.gone .bar { border-left-color: var(--muted); }
+.sect.gone .bar h2 svg { color: var(--muted); }
+.sect.closed .grid, .sect.closed .hint { display: none; }
 .hint { margin: -4px 0 12px; color: var(--muted); font-size: .88rem; max-width: 60ch; }
+.bar .clear { margin-left: auto; }
+.bar .clear + .tog { margin-left: 0; }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px 16px; }
-@media (max-width: 560px) { .grid { grid-template-columns: 1fr 1fr; gap: 16px 12px; } }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 22px 18px; }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr 1fr; gap: 16px 12px; } }
 
-/* a card: the poster, then the ticket stub */
+/* a card: a rounded box holding the poster and a price line */
 .card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 10px; overflow: hidden;
   background: var(--surface); box-shadow: var(--shadow); }
 .poster { --tone: #2a2f33; position: relative; display: flex; flex-direction: column; aspect-ratio: 2 / 3; max-width: 100%;
@@ -141,27 +155,17 @@ button { font: inherit; color: inherit; }
 .cbtn:focus-visible { outline-color: #fff; }
 .pickstar { position: absolute; z-index: 2; top: 6px; left: 6px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
   background: var(--gold-bg); color: #241a00; font-size: 1rem; line-height: 1; pointer-events: none; box-shadow: 0 1px 4px rgb(0 0 0 / .3); }
-.stub { position: relative; background: var(--stub); color: var(--stub-ink); padding: 7px 8px 7px 11px;
-  border-top: 2px dashed color-mix(in srgb, var(--stub-ink) 28%, transparent); display: flex; align-items: center; gap: 4px; }
-.stub .price, .stub small { white-space: nowrap; }
-.stub .st { display: grid; gap: 1px; min-width: 0; flex: 1; }
-.stub::before, .stub::after { content: ""; position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); }
-.stub::before { left: -7px; } .stub::after { right: -7px; }
-.stub .price { font: 400 1.3rem/1.05 var(--display); letter-spacing: .03em; font-variant-numeric: tabular-nums; }
-.stub small { font-size: .74rem; opacity: .8; line-height: 1.3; }
+.info { padding: 9px 12px 11px; display: grid; gap: 1px; }
+.info .price { font: 400 1.4rem/1.05 var(--display); letter-spacing: .03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.info small { font-size: .78rem; color: var(--muted); line-height: 1.3; }
+@media (max-width: 600px) { .ttl.long ~ .tag { display: none; } }
+@media (min-width: 601px) { .ttl { font-size: 4rem; } .ttl.long { font-size: 3rem; } .tag { font-size: .84rem; } .billing { font-size: .9rem; } .brand { font-size: .72rem; } .gen { font-size: .8rem; } }
 .card.hlt { box-shadow: 0 0 0 2px var(--gold-bg), var(--shadow); }
 .card.gone .poster { filter: grayscale(1) brightness(.75); }
-.card.gone .stub { opacity: .55; }
+.card.gone .info { opacity: .55; }
 .back { position: absolute; z-index: 3; left: 50%; top: 38%; transform: translate(-50%, -50%); border: 0; border-radius: 999px;
   background: var(--surface); color: var(--ink); font-weight: 700; font-size: .85rem; padding: 9px 14px; box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; }
 
-details.banished { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; }
-details.banished > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 10px; }
-details.banished > summary::-webkit-details-marker { display: none; }
-details.banished > summary h2 { margin: 0; font: 400 1.9rem/1 var(--display); text-transform: uppercase; letter-spacing: .02em; color: var(--muted); }
-details.banished > summary .tw { margin-left: auto; color: var(--accent); font-weight: 600; font-size: .88rem; }
-details.banished[open] > summary .tw .o, details.banished:not([open]) > summary .tw .c { display: none; }
-details.banished .grid { margin-top: 12px; }
 .empty { color: var(--muted); padding: 32px 0; text-align: center; }
 
 .foot { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .84rem; display: grid; gap: 10px; }
@@ -240,15 +244,17 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 <div class="wrap">
   <header class="masthead">
     <h1 class="wordmark"><b>D</b>river <b>D</b>ecider</h1>
-    <p class="tagline">Used first cars from $5,000 to $11,000, priced for San Francisco. Tap a poster for the full story.</p>
+    <p class="tagline">Used first cars from $5,000 to $11,000, priced for San Francisco. Tap a car for the full story.</p>
   </header>
 
   <div class="filters" role="search" aria-label="Filters">
     <div class="chips" id="chips"></div>
     <div class="row2">
+      <label class="sr" for="type">Type of car</label>
+      <select id="type"><option value="">All types</option></select>
       <label class="sr" for="sort">Sort</label>
       <select id="sort">
-        <option value="price">Lowest price</option>
+        <option value="price">Cheapest</option>
         <option value="cost">Lowest 5-year cost</option>
         <option value="mpg">Best MPG</option>
         <option value="safety">Safest</option>
@@ -268,23 +274,8 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
     </div>
   </div>
 
-  <section class="sect" id="hlSect" hidden aria-labelledby="hlH">
-    <div class="sbar"><h2 id="hlH">Highlights</h2><span class="n" id="hlN"></span></div>
-    <div class="grid" id="hlGrid"></div>
-  </section>
-
-  <section class="sect" aria-labelledby="allH">
-    <div class="sbar"><h2 id="allH">The lineup</h2><span class="n" id="allN"></span>
-      <button type="button" class="act" id="clear2" hidden>Clear filters</button></div>
-    <p class="hint" id="hint">Tap the bookmark to highlight a car and keep it at the top. Tap the crossed-out eye to banish it from your list.</p>
-    <div class="grid" id="grid"></div>
-    <p class="empty" id="empty" hidden>No cars match these filters.</p>
-  </section>
-
-  <details class="banished" id="banSect" hidden>
-    <summary><h2>Banished</h2><span class="n" id="banN"></span><span class="tw"><span class="o">Show</span><span class="c">Hide</span></span></summary>
-    <div class="grid" id="banGrid"></div>
-  </details>
+  <div id="sections"></div>
+  <p class="empty" id="empty" hidden>No cars match these filters. <button type="button" class="clear" id="clear2">Clear filters</button></p>
 
   <footer class="foot">
     <p>Prices are Kelley Blue Book private-party values in Very Good condition for San Francisco, read in November 2026. The 5-year cost adds California sales tax and license fees, fuel at 12,000 miles a year, and repairs and maintenance at Bay Area shop rates. Insurance is a Geico quote for one driver and is not in the 5-year cost. Number for sale is a rough nationwide Autotrader count.</p>
@@ -357,23 +348,23 @@ const a = (href, text) => href ? `<a class="ext" href="${esc(href)}" target="_bl
 
 // ---- filters ----
 const bodyOf = (r) => r["Body style"] === "Sedan or hatchback" ? ["Sedan", "Hatchback"] : [r["Body style"]];
+const typesOf = (r) => r["Body style"] === "Convertible" ? ["Convertible"] : bodyOf(r).map((b) => r.Size + " " + b.toLowerCase());
+const TYPE_ORDER = ["Subcompact hatchback", "Compact hatchback", "Compact sedan", "Mid-size sedan", "Convertible"];
 const fuelOf = (r) => /Hybrid/.test(r["Gas/Hybrid"]) ? "Hybrid" : /premium/.test(r["Gas/Hybrid"]) ? "Premium gas" : "Regular gas";
 const GROUPS = [
-  { id: "pick", chips: [{ v: "pick", label: '<span class="star">★</span> Simon\'s picks', test: (r) => r["Simon's pick"] === "Yes", cls: "pick" }] },
-  { id: "body", chips: ["Sedan", "Hatchback", "Convertible"].map((v) => ({ v, label: v, test: (r) => bodyOf(r).includes(v) })) },
-  { id: "size", chips: ["Subcompact", "Compact", "Mid-size"].map((v) => ({ v, label: v, test: (r) => r.Size === v })) },
   { id: "fuel", chips: ["Hybrid", "Regular gas", "Premium gas"].map((v) => ({ v, label: v, test: (r) => fuelOf(r) === v })) },
   { id: "awd", chips: [{ v: "awd", label: "All-wheel drive", test: (r) => r.Drive === "All-wheel drive" }] },
   { id: "safe", chips: [{ v: "safe", label: "Safety: High", test: (r) => r["Safety level (High/Med/Low)"] === "High" }] },
   { id: "rel", chips: [{ v: "rel", label: "Reliability: High", test: (r) => r["Reliability (High/Med/Low)"] === "High" }] },
 ];
 const on = {}; GROUPS.forEach((g) => (on[g.id] = new Set()));
-const ui = { sort: "price", max: "" };
+const ui = { sort: "price", max: "", type: "" };
 try { const u = JSON.parse(localStorage.getItem(KEY + ".ui") || "null"); if (u) { Object.assign(ui, u.ui || {}); for (const g of GROUPS) (u.on?.[g.id] || []).forEach((v) => on[g.id].add(v)); } } catch {}
 const saveUi = () => { try { localStorage.setItem(KEY + ".ui", JSON.stringify({ ui, on: Object.fromEntries(GROUPS.map((g) => [g.id, [...on[g.id]]])) })); } catch {} };
 
 const rowPasses = (r, skip) => {
   if (ui.max && r["KBB private party $"] > +ui.max) return false;
+  if (ui.type && !typesOf(r).includes(ui.type)) return false;
   for (const g of GROUPS) {
     if (g.id === skip || !on[g.id].size) continue;
     if (!g.chips.some((c) => on[g.id].has(c.v) && c.test(r))) return false;
@@ -381,7 +372,7 @@ const rowPasses = (r, skip) => {
   return true;
 };
 const matchRows = (c) => c.rows.filter((r) => rowPasses(r));
-const anyFilter = () => !!ui.max || GROUPS.some((g) => on[g.id].size);
+const anyFilter = () => !!ui.max || !!ui.type || GROUPS.some((g) => on[g.id].size);
 
 function renderChips() {
   const parts = [];
@@ -399,10 +390,18 @@ $("chips").addEventListener("click", (e) => {
   const s = on[b.dataset.g]; s.has(b.dataset.v) ? s.delete(b.dataset.v) : s.add(b.dataset.v);
   saveUi(); render();
 });
+{
+  const all = new Set(CARS.flatMap((c) => c.rows.flatMap(typesOf)));
+  const list = [...TYPE_ORDER.filter((t) => all.has(t)), ...[...all].filter((t) => !TYPE_ORDER.includes(t)).sort()];
+  $("type").insertAdjacentHTML("beforeend", list.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join(""));
+  if (!list.includes(ui.type)) ui.type = "";
+  $("type").value = ui.type;
+  $("type").addEventListener("change", (e) => { ui.type = e.target.value; saveUi(); render(); });
+}
 $("sort").value = ui.sort; $("max").value = ui.max;
 $("sort").addEventListener("change", (e) => { ui.sort = e.target.value; saveUi(); render(); });
 $("max").addEventListener("change", (e) => { ui.max = e.target.value; saveUi(); render(); });
-$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; $("max").value = ""; saveUi(); render(); });
+$("clear2").addEventListener("click", () => { GROUPS.forEach((g) => on[g.id].clear()); ui.max = ""; ui.type = ""; $("max").value = ""; $("type").value = ""; saveUi(); render(); });
 
 // ---- sorting ----
 const best = (rows, k, f = Math.min) => f(...rows.map((r) => (typeof r[k] === "number" ? r[k] : f === Math.min ? Infinity : -Infinity)));
@@ -438,40 +437,59 @@ function card(c, rows, mode) {
         <span class="brand">${esc(c.brand)}</span>
         <span class="ttl${long}">${esc(c.title)}</span>
         <span class="gen">${esc(years)}</span>
-        ${summary && !long ? `<span class="tag">${esc(summary)}</span>` : ""}
+        ${summary ? `<span class="tag">${esc(summary)}</span>` : ""}
         <span class="billing">${esc(mpg)} MPG · Safety ${esc(safety)} · Reliability ${esc(rel)}</span>
       </span>
     </button>
     ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
     ${mode === "gone" ? `<button type="button" class="back" data-back="${c.id}">Bring back</button>` : ""}
     ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${c.id}" aria-pressed="${hl}" title="${hl ? "Remove highlight" : "Highlight this car"}" aria-label="${hl ? "Remove highlight from" : "Highlight"} ${esc(c.title)}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${c.id}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
-    <div class="stub"><span class="st"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>5-yr from ${money(Math.min(...rows.map((r) => r["5-year cost $"])))}</small></span>
-</div>
+    <div class="info"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>${rows.length === 1 ? "1 version" : rows.length + " versions"} · 5-year cost from ${money(Math.min(...rows.map((r) => r["5-year cost $"])))}</small></div>
   </article>`;
 }
 
+// ---- sections ----
+const SECT_ICON = {
+  hl: ICON.markOn,
+  picks: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>',
+  gone: ICON.ban,
+};
+const closed = { gone: true };
+try { Object.assign(closed, JSON.parse(localStorage.getItem(KEY + ".closed") || "{}")); } catch {}
+const isPick = (c) => c.rows.some((r) => r["Simon's pick"] === "Yes");
+function section(id, title, items, mode) {
+  if (!items.length) return "";
+  const shut = !!closed[id];
+  const note = id === "rest" && !saved.hl.length && !saved.ban.length
+    ? '<p class="hint">Tap the bookmark to highlight a car and keep it at the top. Tap the crossed-out eye to banish it from your list.</p>' : "";
+  return `<section class="sect ${id}${shut ? " closed" : ""}" aria-labelledby="h-${id}">
+    <div class="bar"><h2 id="h-${id}">${SECT_ICON[id] || ""}${esc(title)}</h2><span class="n">${items.length}</span>
+      <button type="button" class="tog" data-tog="${id}" aria-expanded="${!shut}">${shut ? "Expand" : "Collapse"}</button></div>
+    ${note}<div class="grid">${items.map((x) => card(x.c, x.rows, mode)).join("")}</div></section>`;
+}
 function render() {
   renderChips();
-  const live = [], hls = [], gone = [];
+  const hls = [], picks = [], rest = [], gone = [];
   for (const c of CARS) {
-    if (isBan(c.id)) { gone.push(c); continue; }
+    if (isBan(c.id)) { gone.push({ c, rows: c.rows }); continue; }
     const rows = matchRows(c); if (!rows.length) continue;
-    (isHl(c.id) ? hls : live).push({ c, rows });
+    (isHl(c.id) ? hls : isPick(c) ? picks : rest).push({ c, rows });
   }
-  sorted(hls); sorted(live);
-  $("hlSect").hidden = !hls.length;
-  $("hlGrid").innerHTML = hls.map((x) => card(x.c, x.rows)).join("");
-  $("hlN").textContent = hls.length;
-  $("grid").innerHTML = live.map((x) => card(x.c, x.rows)).join("");
-  $("allN").textContent = live.length;
-  $("empty").hidden = !!live.length || !!hls.length;
-  $("clear2").hidden = !anyFilter();
-  $("hint").hidden = saved.hl.length > 0 || saved.ban.length > 0;
-  $("count").textContent = (live.length + hls.length) + " of " + (CARS.length - gone.length) + " cars";
-  $("banSect").hidden = !gone.length;
-  $("banN").textContent = gone.length;
-  $("banGrid").innerHTML = gone.map((c) => card(c, c.rows, "gone")).join("");
+  sorted(hls); sorted(picks); sorted(rest); sorted(gone);
+  $("sections").innerHTML =
+    section("hl", "Highlights", hls) +
+    section("picks", "Simon's picks", picks) +
+    section("rest", picks.length || hls.length ? "The rest" : "All cars", rest) +
+    section("gone", "Banished", gone, "gone");
+  const shown = hls.length + picks.length + rest.length;
+  $("empty").hidden = shown > 0;
+  $("count").innerHTML = shown + " of " + (CARS.length - gone.length) + " cars" + (anyFilter() ? ' · <button type="button" class="clear" data-clear>Clear filters</button>' : "");
 }
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tog]");
+  if (t) { const id = t.dataset.tog; closed[id] = !closed[id]; try { localStorage.setItem(KEY + ".closed", JSON.stringify(closed)); } catch {} render(); document.querySelector(`[data-tog="${id}"]`)?.focus(); return; }
+  if (e.target.closest("[data-clear]")) $("clear2").click();
+});
 
 // ---- highlight / banish, with an Undo toast ----
 let undoFn = null, toastTimer = 0;

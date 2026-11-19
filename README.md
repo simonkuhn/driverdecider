@@ -1,13 +1,13 @@
 # Driver Decider
 
-A one-page site that shows the used cars from the "First car comparison" sheet as movie posters.
+A one-page site that shows the used cars from the "First car comparison" sheet as movie-poster-style cards.
 Built for iPhone first. It lives at **zombe.es/driverdecider**.
 
-- One poster per car generation. Tap it for every version (year and trim) with price, 5-year cost,
+- One card per car generation, in sections: Highlights, Simon's picks, the rest, and Banished (collapsed). Tap a card for every version (year and trim) with price, 5-year cost,
   insurance, MPG, safety and reliability ratings, and links to KBB, NHTSA, IIHS, Consumer Reports,
   RepairPal and an Autotrader search for that model and year.
-- Filter chips across the top (Simon's picks, body, size, fuel, all-wheel drive, high safety, high
-  reliability), a price cap and a sort.
+- Filter chips across the top (fuel, all-wheel drive, high safety, high reliability), a type-of-car
+  dropdown (Compact sedan, Mid-size sedan and so on), a price cap and a sort. Three or four across on a desktop.
 - Highlight a car to keep it at the top, or banish it to get it out of the list. Both are kept in the
   browser's local storage (`driverdecider.v1`). Banished cars wait at the bottom with a Bring back button.
 
