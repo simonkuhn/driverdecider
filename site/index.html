@@ -243,6 +243,16 @@ button { font: inherit; color: inherit; }
 dialog.detail { border: 0; padding: 0; margin: auto; width: min(760px, 100vw); max-width: 100vw; max-height: 100dvh; height: auto;
   background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: var(--shadow); overflow: auto; overscroll-behavior: contain; }
 dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
+/* a fade and a "More below" button pinned to the bottom of the sheet until it's scrolled to the end */
+.dmore { position: sticky; bottom: 0; height: 0; z-index: 3; }
+.dmore .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 96px; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--surface) 78%); transition: opacity .2s; }
+.dmore button { position: absolute; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 6px; font: 600 .84rem var(--body); color: var(--accent-ink); background: var(--accent-fill);
+  border: 0; border-radius: 50%; width: 40px; height: 40px; padding: 0; justify-content: center; cursor: pointer; box-shadow: var(--shadow); transition: opacity .2s; white-space: nowrap; }
+.dmore button svg { width: 22px; height: 22px; }
+.dmore.end .fade, .dmore.end button { opacity: 0; pointer-events: none; }
+.dmore.end button { visibility: hidden; transition: opacity .2s, visibility 0s .2s; }
 @media (max-width: 560px) { dialog.detail { width: 100vw; height: 100dvh; border-radius: 0; margin: 0; } }
 .dtop { position: sticky; top: 0; z-index: 4; display: flex; gap: 8px; justify-content: flex-end; padding: calc(10px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 0 12px; height: 0; overflow: visible; }
 .dtop button { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
@@ -273,6 +283,10 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .b.plain { background: transparent; border: 1px solid var(--line); color: var(--muted); }
 .vtabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; }
 .vtabs::-webkit-scrollbar { display: none; }
+/* fade the edge that has more versions past it */
+.vtabs.mr { -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); mask-image: linear-gradient(to right, #000 82%, transparent); }
+.vtabs.ml { -webkit-mask-image: linear-gradient(to left, #000 82%, transparent); mask-image: linear-gradient(to left, #000 82%, transparent); }
+.vtabs.ml.mr { -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent); }
 .vtabs button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 11px; cursor: pointer;
   display: grid; text-align: left; line-height: 1.2; min-height: 44px; }
 .vtabs button b { font: 400 1.15rem/1 var(--display); letter-spacing: .03em; }
@@ -870,13 +884,23 @@ function openDetail(key, vi) {
         </div>
       </section>
     </div>`;
+  dlg.insertAdjacentHTML("beforeend", `<div class="dmore"><div class="fade"></div><button type="button" class="morebtn" aria-label="Scroll down for more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>`);
   if (!dlg.open) { dlg.showModal(); dlg.scrollTop = 0; }
+  { const t = dlg.querySelector(".vtabs"), on = t?.querySelector('[aria-pressed="true"]');
+    if (on && on.offsetLeft + on.offsetWidth > t.clientWidth) t.scrollLeft = on.offsetLeft - t.clientWidth / 2 + on.offsetWidth / 2; }
+  markMore(); markTabs();
   $("dClose").addEventListener("click", () => dlg.close());
 }
+const markMore = () => dlg.querySelector(".dmore")?.classList.toggle("end", dlg.scrollTop + dlg.clientHeight >= dlg.scrollHeight - 24);
+const markTabs = () => { const t = dlg.querySelector(".vtabs"); if (!t) return;
+  t.classList.toggle("ml", t.scrollLeft > 4); t.classList.toggle("mr", t.scrollLeft + t.clientWidth < t.scrollWidth - 4); };
+dlg.addEventListener("scroll", (e) => { if (e.target === dlg) markMore(); else if (e.target.classList?.contains("vtabs")) markTabs(); }, { passive: true, capture: true });
+addEventListener("resize", () => { if (dlg.open) { markMore(); markTabs(); } });
 dlg.addEventListener("click", (e) => {
   if (e.target === dlg) { dlg.close(); return; }
+  if (e.target.closest(".morebtn")) { dlg.scrollBy({ top: dlg.clientHeight * .7, behavior: "smooth" }); return; }
   const info = e.target.closest(".info");
-  if (info) { const t = info.closest("div").querySelector(".tipx"), open = t.hidden; t.hidden = !open; info.setAttribute("aria-expanded", String(open)); return; }
+  if (info) { const t = info.closest("div").querySelector(".tipx"), open = t.hidden; t.hidden = !open; info.setAttribute("aria-expanded", String(open)); markMore(); return; }
   const b = e.target.closest("[data-vi]"); if (!b) return;
   const id = dlg.dataset.car;
   if (id) { const top = dlg.scrollTop; openDetail(id, +b.dataset.vi); dlg.scrollTop = top; dlg.querySelector(`[data-vi="${b.dataset.vi}"]`)?.focus(); }
