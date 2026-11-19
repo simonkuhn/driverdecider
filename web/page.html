@@ -23,6 +23,10 @@
   --road: #2a2e31;
   --gold: #b07a00;
   --gold-bg: #f5c542;
+  /* masthead: in light mode it sits on an asphalt panel so the wordmark can use the lane-line yellow */
+  --mast-bg: var(--road); --mast-ink: #f5c542; --mast-sub: #c9cdc8; --mast-pad: 18px 16px 30px; --lane-in: 16px; --lane-low: 10px;
+  /* section bars: asphalt in light mode too */
+  --bar-bg: var(--road); --bar-hl-bg: var(--road); --bar-ink: #eef0ee; --bar-sub: #b9bfc3; --bar-icon: #f5c542; --bar-btn: transparent; --bar-btn-line: #8d959b; --bar-gone: #8d959b; --bar-edge: #f5c542;
   --stub: #f4efe2;
   --stub-ink: #382c14;
   --shadow: 0 1px 2px rgb(23 26 28 / .06), 0 6px 18px rgb(23 26 28 / .08);
@@ -41,6 +45,8 @@
   :root:not([data-theme="light"]) {
     --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
     --road: #33383c; --accent: #f5c542; --accent-fill: #f5c542; --accent-ink: #241a00; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+    --mast-bg: transparent; --mast-ink: var(--accent); --mast-sub: var(--muted); --mast-pad: 0 0 24px; --lane-in: 0px; --lane-low: 0px;
+    --bar-bg: color-mix(in srgb, var(--line) 55%, var(--surface)); --bar-hl-bg: var(--bar-bg); --bar-ink: var(--ink); --bar-sub: var(--muted); --bar-icon: var(--accent); --bar-btn: var(--surface); --bar-btn-line: var(--muted); --bar-gone: var(--muted); --bar-edge: var(--accent);
     --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
     --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
     --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -51,6 +57,8 @@
 :root[data-theme="dark"] {
   --bg: #111416; --surface: #1a1e21; --ink: #e2e5e3; --muted: #a1a8ad; --line: #2c3236;
   --road: #33383c; --accent: #f5c542; --accent-fill: #f5c542; --accent-ink: #241a00; --gold: #f2c14e; --gold-bg: #f2c14e; --stub: #2a2519; --stub-ink: #f0dfbb;
+    --mast-bg: transparent; --mast-ink: var(--accent); --mast-sub: var(--muted); --mast-pad: 0 0 24px; --lane-in: 0px; --lane-low: 0px;
+    --bar-bg: color-mix(in srgb, var(--line) 55%, var(--surface)); --bar-hl-bg: var(--bar-bg); --bar-ink: var(--ink); --bar-sub: var(--muted); --bar-icon: var(--accent); --bar-btn: var(--surface); --bar-btn-line: var(--muted); --bar-gone: var(--muted); --bar-edge: var(--accent);
   --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .35);
   --r-blue: #1c3354; --r-blue-ink: #bcd6fb; --r-green: #173a26; --r-green-ink: #a9e5bb;
   --r-yellow: #3d3412; --r-yellow-ink: #f3df8c; --r-orange: #44290f; --r-orange-ink: #fbc590;
@@ -75,12 +83,12 @@ button { font: inherit; color: inherit; }
 
 /* masthead: the rule under it is a road, a dark band with a dashed center line */
 .masthead { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
-  gap: 6px 24px; padding-bottom: 24px; }
-.masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; border-radius: 2px;
+  gap: 6px 24px; padding: var(--mast-pad); background: var(--mast-bg); border-radius: 12px; }
+.masthead::after { content: ""; position: absolute; left: var(--lane-in); right: var(--lane-in); bottom: var(--lane-low); height: 14px; border-radius: 2px;
   background: linear-gradient(90deg, var(--gold-bg) 0 26px, transparent 26px 56px) 0 50% / 56px 3px repeat-x, var(--road); }
-.wordmark { margin: 0; color: var(--accent); font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
-.wordmark b { font-weight: 400; color: var(--accent); }
-.tagline { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
+.wordmark { margin: 0; color: var(--mast-ink); font: 400 clamp(3.1rem, 15vw, 5.6rem)/.84 var(--display); text-transform: uppercase; letter-spacing: .005em; }
+.wordmark b { font-weight: 400; color: inherit; }
+.tagline { margin: 0; color: var(--mast-sub); font-size: .9rem; line-height: 1.35; max-width: 34ch; }
 
 /* filters: sticky strip of chips, then sort and price */
 .filters { background: var(--bg);
@@ -109,14 +117,25 @@ button { font: inherit; color: inherit; }
   background-position: right 16px center, right 11px center !important; background-size: 5px 5px, 5px 5px !important; background-repeat: no-repeat !important; }
 .row2 select { font: 500 .88rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 8px; min-height: 36px; min-width: 0; flex: 0 1 auto; max-width: 100%; }
-@media (max-width: 600px) {
+@media (max-width: 1099px) {
   .fold { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: none; width: 9.6rem; font: 600 .86rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 38px; cursor: pointer; white-space: nowrap; }
   .fold .funnel { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
   .fold.on .funnel { fill: var(--accent); stroke: var(--accent); }
   .row2.folded > select:not(#sort):not(#max) { display: none; }
 }
 @media (max-width: 600px) { .seg { flex: 1 1 0; } .seg button { flex: 1; min-height: 32px; } .row2 select { flex: 1 1 calc(50% - 8px); max-width: none; } .row2 #type, .row2 #sort { flex-basis: 100%; } .count { flex: 1 1 calc(50% - 8px); margin-left: 0; padding-right: 4px; white-space: normal; text-align: right; } }
-@media (min-width: 601px) { .fold { display: none; } }
+@media (min-width: 1100px) { .fold { display: none; } }
+/* iPhone landscape and iPad: three aligned columns, with the same Hide filters button as the phone.
+   Open: view+button / shape drive fuel / safety reliability sort / price count. Folded: sort price count. */
+@media (min-width: 601px) and (max-width: 1099px) {
+  .row2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+  .row2 > .seg { grid-column: span 2; display: flex; } .row2 > .seg button { flex: 1; }
+  .row2 .fold { width: auto; }
+  .row2 select { width: 100%; max-width: none; min-height: 38px; }
+  .row2 .count { margin-left: 0; align-self: center; padding-right: 4px; white-space: normal; text-align: right; }
+  .row2 #type { order: 1; } .row2 #drive { order: 2; } .row2 #fuel { order: 3; } .row2 #safe { order: 4; } .row2 #rel { order: 5; } .row2 #sort { order: 6; } .row2 #max { order: 7; } .row2 .count { order: 8; grid-column: span 2; }
+  .row2.folded .count { grid-column: auto; }
+}
 .count { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* desktop: a big By model / By year switch on the left, the seven dropdowns and the count in a 4-column, 2-row grid beside it */
 @media (min-width: 1100px) {
@@ -132,25 +151,25 @@ button { font: inherit; color: inherit; }
 /* sections: a bar with a colored left edge, an icon, a count and a Collapse button */
 .sect { margin-top: 18px; scroll-margin-top: 12px; }
 /* desktop: the filter bar stays at the top while the cars scroll under it */
-@media (min-width: 760px) {
+@media (min-width: 760px) and (min-height: 500px) {
   .filters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; }
   .sect { scroll-margin-top: calc(var(--fh, 0px) + 12px); }
 }
 .bar { margin: 0 0 14px; display: flex; align-items: center; gap: 4px 12px; padding: 10px 10px 10px 14px; border-radius: 10px;
-  border-left: 8px solid var(--accent); background: color-mix(in srgb, var(--line) 55%, var(--surface)); }
+  border-left: 8px solid var(--bar-edge); background: var(--bar-bg); color: var(--bar-ink); }
 .bar h2 { margin: 0; display: flex; align-items: center; gap: 9px; font: 400 1.7rem/1 var(--display); text-transform: uppercase; letter-spacing: .01em; min-width: 0; }
-.bar h2 svg { width: 21px; height: 21px; flex: none; color: var(--accent); }
-.bar .n { color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.bar .tog { margin-left: auto; flex: none; font: 600 .84rem var(--body); color: var(--ink); background: var(--surface);
-  border: 1px solid var(--muted); border-radius: 8px; padding: 0 12px; min-height: 34px; cursor: pointer; }
-.sect.hl .bar { border-left-color: var(--gold-bg); background: color-mix(in srgb, var(--gold-bg) 18%, var(--surface)); }
-.sect.hl .bar h2 svg { color: var(--gold); }
+.bar h2 svg { width: 21px; height: 21px; flex: none; color: var(--bar-icon); }
+.bar .n { color: var(--bar-sub); font-size: .88rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar .tog { margin-left: auto; flex: none; font: 600 .84rem var(--body); color: var(--bar-ink); background: var(--bar-btn);
+  border: 1px solid var(--bar-btn-line); border-radius: 8px; padding: 0 12px; min-height: 34px; cursor: pointer; }
+.sect.hl .bar { border-left-color: var(--gold-bg); background: var(--bar-hl-bg); }
+.sect.hl .bar h2 svg { color: var(--bar-icon); }
 .sect.picks .bar { border-left-color: var(--accent-fill); }
-.sect.gone .bar { border-left-color: var(--muted); }
-.sect.gone .bar h2 svg { color: var(--muted); }
+.sect.gone .bar { border-left-color: var(--bar-gone); }
+.sect.gone .bar h2 svg { color: var(--bar-gone); }
 .sect.closed .grid, .sect.closed .hint { display: none; }
 .hint { margin: -4px 0 12px; color: var(--muted); font-size: .88rem; max-width: 60ch; }
-.bar .clear { margin-left: auto; }
+.bar .clear { margin-left: auto; color: var(--bar-icon); }
 /* My Picks compare table */
 .cmpbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: -4px 0 14px; }
 .cmpbar .seg { flex: none; }
@@ -325,12 +344,12 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .jumpbtn { position: fixed; z-index: 9; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   display: none; font: 700 .85rem var(--body); border: 0; border-radius: 999px; padding: 10px 16px; background: var(--accent-fill); color: var(--accent-ink);
   box-shadow: var(--shadow); cursor: pointer; }
-@media (min-width: 760px) {
+@media (min-width: 900px) {
   body { padding-right: 112px; }
   .jump { display: grid; right: max(10px, (100vw - 1240px - 112px) / 2 - 50px); }
   .jump[data-off] { visibility: hidden; }
 }
-@media (max-width: 759px) {
+@media (max-width: 899px) {
   .jumpbtn:not([hidden]) { display: block; }
   .jump { top: auto; transform: none; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(66px + env(safe-area-inset-bottom, 0px)); width: 190px; }
   .jump.open:not([data-off]) { display: grid; }
