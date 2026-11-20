@@ -28,6 +28,7 @@ G=[
  ('jetta',lambda x:x['Model'].startswith('Jetta'),'Jetta','Volkswagen','6th generation','jetta-a6fl','jetta-6'),
  ('passat',lambda x:x['Model']=='Passat','Passat','Volkswagen','7th generation','passat-nms-fl','passat-nms'),
  ('golf',lambda x:x['Model'].startswith('Golf'),'Golf','Volkswagen','7th generation (Mk7)','golf-mk7','golf-mk7'),
+ ('x1',lambda x:x['Brand']=='BMW' and x['Model']=='X1','X1','BMW','1st generation (E84)','bmw-x1-e84','bmw-x1-e84'),
 ]
 SL={ # make slug, model slug for CR/RepairPal/KBB/Autotrader/Edmunds ; IIHS slug ; NHTSA model
  'ilx':('acura','ilx','acura/ilx-4-door-sedan','ILX'),'civic':('honda','civic','honda/civic-4-door-sedan','CIVIC'),
@@ -41,6 +42,7 @@ SL={ # make slug, model slug for CR/RepairPal/KBB/Autotrader/Edmunds ; IIHS slug
  'prius':('toyota','prius','toyota/prius-4-door-hatchback','PRIUS'),'priusc':('toyota','prius-c','toyota/prius-c-4-door-hatchback','PRIUS%2520C'),
  'beetle':('volkswagen','beetle','volkswagen/beetle-2-door-hatchback','BEETLE'),'jetta':('volkswagen','jetta','volkswagen/jetta-4-door-sedan','JETTA'),
  'passat':('volkswagen','passat','volkswagen/passat-4-door-sedan','PASSAT'),'golf':('volkswagen','golf','volkswagen/golf-4-door-hatchback','GOLF'),
+ 'x1':('bmw','x1','bmw/x1-4-door-suv','X1'),
 }
 KBBM={'cooper':'hardtop','coopers':'hardtop'}
 creds=json.load(open(P+'credits.json'))
@@ -55,6 +57,7 @@ def variant(x,g):
     d=x['Description']
     if g=='golf' and '2-door' in d: t=(t+' ' if t else '')+('Launch Edition 2-door' if 'Launch' in d else 'Base 2-door')
     if g in('impreza4',) and x['Body style']!='Sedan or hatchback': t=x['Body style']
+    if g=='x1': t='xDrive35i M Sport'
     return t
 used=set(); out=[]
 def photo(slug,kind,w,name=None,q=80):
@@ -76,7 +79,10 @@ for gid,test,title,brand,gen,ext,intr in G:
     rs.sort(key=lambda x:(x['Year'],x['KBB private party $']))
     items=[]
     for x in rs:
-        d={k:clean(v) for k,v in x.items()}; d['variant']=variant(x,gid); items.append(d)
+        d={k:clean(v) for k,v in x.items()}; d['variant']=variant(x,gid)
+        # a specific car Simon found: the price is its asking price and Est. miles its odometer (sheet Notes say so)
+        if 'asking price' in (x.get('Notes') or ''): d['asking']=True
+        items.append(d)
     ms,mm,iihs,nh=SL[gid]
     out.append(dict(id=gid,title=title,brand=brand,gen=gen,ext=photo(ext,'ext',900),card=photo(ext,'ext',680,'card',72),int=photo(intr,'int',900),tone=tone(ext),
         credExt=creds.get(ext+'_ext',''),credInt=creds.get(intr+'_int',''),make=ms,model=mm,kbbModel=KBBM.get(gid,mm),iihs=iihs,nhtsa=nh,rows=items))

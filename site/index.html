@@ -604,17 +604,18 @@ const RANK = { High: 3, Med: 2, Low: 1 };
 const CR_MODEL = { mazda3: "3", mazda6: "6" };
 const NHTSA_MODEL = { ilx: "ILX", civic: "CIVIC", accord: "ACCORD", miata: "MX-5", mazda3s: "MAZDA3", mazda3h: "MAZDA3", mazda6: "MAZDA6",
   cooper: "COOPER HARDTOP", coopers: "COOPER S HARDTOP", impreza4: "IMPREZA", impreza5: "IMPREZA", legacy: "LEGACY", yaris: "YARIS",
-  corolla10: "COROLLA", corolla11: "COROLLA", prius: "PRIUS", priusc: "PRIUS C", beetle: "BEETLE", jetta: "JETTA", passat: "PASSAT", golf: "GOLF" };
+  corolla10: "COROLLA", corolla11: "COROLLA", prius: "PRIUS", priusc: "PRIUS C", beetle: "BEETLE", jetta: "JETTA", passat: "PASSAT", golf: "GOLF", x1: "X1" };
 const CG = { ilx: "d2137", civic: "d586", accord: "d585", miata: "d221", mazda3s: "d214", mazda3h: "d214", mazda6: "d215", cooper: "d436", coopers: "d436",
   im: "d2319", impreza4: "d375", impreza5: "d375", legacy: "d378", yaris: "d827", corolla10: "d295", corolla11: "d295", prius: "d15", priusc: "d2127",
-  beetle: "d201", jetta: "d200", passat: "d202", golf: "d198" };
+  beetle: "d201", jetta: "d200", passat: "d202", golf: "d198", x1: "d2160" };
 // carsurvey.org owner reviews: model slug, and the years that have their own page (checked 2026-11-19); other years link to the model page
 const CS = { ilx: ["acura/ilx", [2013, 2014]], civic: ["honda/civic", [2013, 2014, 2015]], accord: ["honda/accord", [2014, 2015]],
   miata: ["mazda/mx5", [2011]], mazda3s: ["mazda/3", [2015, 2016]], mazda3h: ["mazda/3", [2015, 2016]], mazda6: ["mazda/6", [2014, 2015, 2016]],
   cooper: ["bmw/mini", []], coopers: ["bmw/mini", []], impreza4: ["subaru/impreza", [2014]], impreza5: ["subaru/impreza", []],
   legacy: ["subaru/legacy", [2015]], yaris: ["toyota/yaris", [2012, 2013, 2018]], corolla10: ["toyota/corolla", [2012, 2013]],
   corolla11: ["toyota/corolla", [2014]], prius: ["toyota/prius", [2014]], priusc: ["toyota/prius_c", []], beetle: ["volkswagen/beetle", [2014]],
-  jetta: ["volkswagen/jetta", [2015, 2016]], passat: ["volkswagen/passat", [2015, 2016, 2017]], golf: ["volkswagen/golf", [2015, 2016, 2017]] };
+  jetta: ["volkswagen/jetta", [2015, 2016]], passat: ["volkswagen/passat", [2015, 2016, 2017]], golf: ["volkswagen/golf", [2015, 2016, 2017]],
+  x1: ["bmw/x1", []] };
 const L = {
   carsurvey: (c, y) => { const m = CS[c.id]; if (!m) return null; const yr = m[1].includes(+y); return { href: `https://www.carsurvey.org/reviews/${m[0]}/${yr ? y + "/" : ""}`, text: yr ? `Owner reviews, ${y} (Carsurvey)` : "Owner reviews, all years (Carsurvey)" }; },
   kbb: (c, y) => `https://www.kbb.com/${c.make}/${c.kbbModel}/${y}/`,
@@ -630,8 +631,8 @@ const a = (href, text) => href ? `<a class="ext" href="${esc(href)}" target="_bl
 
 // ---- filters ----
 const bodyOf = (r) => r["Body style"] === "Sedan or hatchback" ? ["Sedan", "Hatchback"] : [r["Body style"]];
-const typesOf = (r) => r["Body style"] === "Convertible" ? ["Convertible"] : bodyOf(r).map((b) => r.Size + " " + b.toLowerCase());
-const TYPE_ORDER = ["Subcompact hatchback", "Compact hatchback", "Compact sedan", "Mid-size sedan", "Convertible"];
+const typesOf = (r) => r["Body style"] === "Convertible" ? ["Convertible"] : bodyOf(r).map((b) => r.Size + " " + (b === "SUV" ? b : b.toLowerCase()));
+const TYPE_ORDER = ["Subcompact hatchback", "Compact hatchback", "Compact sedan", "Mid-size sedan", "Compact SUV", "Convertible"];
 const fuelOf = (r) => /Hybrid/.test(r["Gas/Hybrid"]) ? "Hybrid" : /premium/.test(r["Gas/Hybrid"]) ? "Premium gas" : "Regular gas";
 const GROUPS = [];
 const atLeast = (v, min) => min === "High" ? v === "High" : v === "High" || v === "Med";
@@ -1006,7 +1007,7 @@ const CAR_FIELDS = [
 const ROW_FIELDS = (c, r) => {
   const y = r.Year, sale = r["Number for sale (Autotrader)"];
   return [
-    ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
+    ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${r.asking ? '<span class="src">Asking price</span> ' + a(L.kbb(c, y), '<span class="src">KBB value</span>') : a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
     ["5-year cost", money(r["5-year cost $"]) + costBreak(r), costTip(r)],
     ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet", INS_TIP],
     ["Est. miles", num(r["Est. miles"]), milesTip(r)],
@@ -1046,7 +1047,7 @@ const costTip = (r) => {
 const INS_TIP = "Geico online quote for San Francisco, per year (the 6-month price × 2). Coverage: injury liability $50,000 per person and $100,000 per accident; " +
   "property damage $50,000; medical payments $5,000; uninsured and underinsured motorist $50,000 / $100,000; comprehensive and collision with a $1,000 deductible. " +
   "Quoted as a financed car driven 12,000 miles a year. Geico prices all trims of a model the same.";
-const milesTip = (r) => { const y = Math.round(r["Est. miles"] / 12000); return `Estimated at 12,000 miles a year: ${y} year${y === 1 ? "" : "s"} old × 12,000 miles = ${num(r["Est. miles"])} miles.`; };
+const milesTip = (r) => { if (r.asking) return `This car's odometer: about ${num(r["Est. miles"])} miles.`; const y = Math.round(r["Est. miles"] / 12000); return `Estimated at 12,000 miles a year: ${y} year${y === 1 ? "" : "s"} old × 12,000 miles = ${num(r["Est. miles"])} miles.`; };
 const vlabel = (r) => r.variant ? `${r.Year} ${r.variant}` : String(r.Year);
 let curVar = {};
 function openDetail(key, vi) {
