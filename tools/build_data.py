@@ -81,7 +81,11 @@ for gid,test,title,brand,gen,ext,intr in G:
     for x in rs:
         d={k:clean(v) for k,v in x.items()}; d['variant']=variant(x,gid)
         # a specific car Simon found: the price is its asking price and Est. miles its odometer (sheet Notes say so)
-        if 'asking price' in (x.get('Notes') or ''): d['asking']=True
+        if 'asking price' in (x.get('Notes') or ''):
+            d['asking']=True
+            # KBB ranges written in Notes as 'Very Good $6,265-$7,690, Excellent $6,515-$8,015'
+            d['kbbRanges']=[[c,int(lo.replace(',','')),int(hi.replace(',',''))] for c,lo,hi in
+                re.findall(r'(Excellent|Very Good|Good|Fair) \$([\d,]+)-\$([\d,]+)',x['Notes'])]
         items.append(d)
     ms,mm,iihs,nh=SL[gid]
     out.append(dict(id=gid,title=title,brand=brand,gen=gen,ext=photo(ext,'ext',900),card=photo(ext,'ext',680,'card',72),int=photo(intr,'int',900),tone=tone(ext),

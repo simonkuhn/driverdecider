@@ -405,6 +405,9 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
 .cmp tr.sub th { padding-left: 20px; overflow-wrap: anywhere; font-weight: 400; color: var(--muted); }
 .facts dd .src { color: var(--muted); font-size: .8rem; margin-left: 4px; white-space: nowrap; }
 .big { font: 400 1.6rem/1 var(--display); letter-spacing: .02em; }
+.kbbr { display: block; margin-top: 6px; font-size: .88rem; color: var(--muted); }
+.kbbr span { display: block; color: var(--ink); }
+.kbbr b { font-weight: 600; }
 .shop { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: var(--accent-fill);
   color: var(--accent-ink); font-weight: 700; text-decoration: none; padding: 10px 16px; text-align: center; margin-top: 12px; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1007,7 +1010,7 @@ const CAR_FIELDS = [
 const ROW_FIELDS = (c, r) => {
   const y = r.Year, sale = r["Number for sale (Autotrader)"];
   return [
-    ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${r.asking ? '<span class="src">Asking price</span> ' + a(L.kbb(c, y), '<span class="src">KBB value</span>') : a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
+    ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${r.asking ? '<span class="src">Asking price</span>' + kbbRanges(r, c, y) : a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
     ["5-year cost", money(r["5-year cost $"]) + costBreak(r), costTip(r)],
     ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet", INS_TIP],
     ["Est. miles", num(r["Est. miles"]), milesTip(r)],
@@ -1047,6 +1050,9 @@ const costTip = (r) => {
 const INS_TIP = "Geico online quote for San Francisco, per year (the 6-month price × 2). Coverage: injury liability $50,000 per person and $100,000 per accident; " +
   "property damage $50,000; medical payments $5,000; uninsured and underinsured motorist $50,000 / $100,000; comprehensive and collision with a $1,000 deductible. " +
   "Quoted as a financed car driven 12,000 miles a year. Geico prices all trims of a model the same.";
+// a specific car's asking price: show KBB's private-party ranges for that car under it
+const kbbRanges = (r, c, y) => (r.kbbRanges || []).length ? `<span class="kbbr">${a(L.kbb(c, y), "KBB private party")}, ${num(r["Est. miles"])} miles:` +
+  r.kbbRanges.map(([k, lo, hi]) => `<span>${esc(k)} <b>${money(lo)}–${money(hi).slice(1)}</b></span>`).join("") + "</span>" : " " + a(L.kbb(c, y), '<span class="src">KBB value</span>');
 const milesTip = (r) => { if (r.asking) return `This car's odometer: about ${num(r["Est. miles"])} miles.`; const y = Math.round(r["Est. miles"] / 12000); return `Estimated at 12,000 miles a year: ${y} year${y === 1 ? "" : "s"} old × 12,000 miles = ${num(r["Est. miles"])} miles.`; };
 const vlabel = (r) => r.variant ? `${r.Year} ${r.variant}` : String(r.Year);
 let curVar = {};
