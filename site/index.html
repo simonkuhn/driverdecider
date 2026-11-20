@@ -259,17 +259,34 @@ button { font: inherit; color: inherit; }
 .billing { margin-top: auto; padding-top: 7px; width: 100%; border-top: 1px solid rgb(255 255 255 / .22);
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 4px; text-transform: uppercase; }
 .billing .st { display: grid; gap: 3px; align-content: start; min-width: 0; }
-.billing small { font: 400 .72rem/1 var(--display); letter-spacing: .08em; opacity: .65; }
-.billing b { font: 400 1rem/1 var(--display); letter-spacing: .04em; font-weight: 400; overflow-wrap: anywhere; }
+.billing small { font: 400 .86rem/1 var(--display); letter-spacing: .07em; opacity: .65; }
+.billing b { font: 400 1.35rem/1 var(--display); letter-spacing: .03em; font-weight: 400; overflow-wrap: anywhere; }
 .ptext { container-type: inline-size; }
 /* two cards to a row on a phone: a slightly shorter photo leaves the stats room for three lines */
 @media (max-width: 600px) { .poster .shot { height: 42%; } }
 /* narrow cards (two to a row on a phone): one compact line per pair, breaking only between stats */
-@container (max-width: 250px) {
+/* wider cards (iPad, desktop, phone landscape): fill the empty band with a longer tagline and big stats */
+@container (min-width: 201px) {
+  .tag { -webkit-line-clamp: 3; font-size: .9rem; margin-top: 10px; }
+  .billing { gap: 6px 4px; padding-top: 10px; }
+  .billing small { font-size: .82rem; letter-spacing: .05em; }
+  .billing b { font-size: 1.55rem; }
+  /* a split rating ("High/Medium") takes two lines, so give the tagline one less */
+  .ptext:has(.billing wbr) .tag { -webkit-line-clamp: 2; }
+  .ptext:has(.ttl.long):has(.billing wbr) .tag { -webkit-line-clamp: 1; }
+}
+@container (min-width: 340px) {
+  .tag { font-size: 1.05rem; margin-top: 12px; }
+  .billing { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; padding-top: 16px; }
+  .billing small { font-size: 1.15rem; }
+  .billing b { font-size: 2.7rem; }
+  .billing:has(wbr) b { font-size: 2.2rem; }
+}
+@container (max-width: 200px) {
   .tag { -webkit-line-clamp: 1; }
-  .billing { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; padding-top: 4px; opacity: .85; font: 400 .74rem/1.05 var(--display); }
+  .billing { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; padding-top: 4px; opacity: .9; font: 400 .88rem/1.05 var(--display); }
   .billing .st { display: inline; white-space: nowrap; }
-  .billing small, .billing b { font: 400 .74rem/1.02 var(--display); letter-spacing: .03em; opacity: 1; }
+  .billing small, .billing b { font: 400 .84rem/1.02 var(--display); letter-spacing: .02em; opacity: 1; }
   .billing small::after { content: " "; }
   .billing .st:not(:last-child)::after { content: "\00a0·\00a0"; }
 }
