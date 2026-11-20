@@ -303,6 +303,7 @@ button { font: inherit; color: inherit; }
 .info { padding: 9px 12px 11px; display: grid; gap: 1px; }
 .info .price { font: 400 1.4rem/1.05 var(--display); letter-spacing: .03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .info small { font-size: .78rem; color: var(--muted); line-height: 1.3; }
+.info small .sortv { color: var(--ink); font-weight: 600; }
 @media (max-width: 600px) { .ttl.long ~ .tag { display: none; } }
 @media (min-width: 601px) { .ttl { font-size: 4rem; } .ttl.long { font-size: 3rem; } .tag { font-size: .84rem; }  .brand { font-size: .72rem; } .gen { font-size: .8rem; } }
 .card.hlt { box-shadow: 0 0 0 2px var(--gold-bg), var(--shadow); }
@@ -722,6 +723,13 @@ function sorted(list) {
 }
 
 // ---- cards ----
+// the card's small line shows whatever the list is sorted by when the stat strip and price don't already show it
+function infoStat(rows) {
+  const nums = (k) => rows.map((r) => r[k]).filter((v) => typeof v === "number");
+  if (ui.sort === "ins") { const v = nums("Annual insurance $"); return v.length ? `<span class="sortv">Insurance from ${money(Math.min(...v))} a year</span>` : "Insurance not quoted"; }
+  if (ui.sort === "sale") { const v = nums("Number for sale (Autotrader)"); return v.length ? `<span class="sortv">${num(v.reduce((a, b) => a + b, 0))} for sale</span>` : "Number for sale unknown"; }
+  return `${ui.sort === "cost" ? '<span class="sortv">' : ""}5-year cost from ${money(Math.min(...nums("5-year cost $")))}${ui.sort === "cost" ? "</span>" : ""}`;
+}
 const levelsLine = (rows, k) => { const v = [...new Set(rows.map((r) => r[k]).filter(Boolean))]; return v.sort((p, q) => (RANK[q] || 0) - (RANK[p] || 0)).join("/"); };
 function card(it, mode) {
   const c = it.c, rows = it.rows, key = it.key;
@@ -749,7 +757,7 @@ function card(it, mode) {
     ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
     ${mode === "gone" ? `<button type="button" class="back" data-back="${key}">Bring back</button>` : ""}
     ${mode === "gone" ? "" : `<span class="cbtns"><button type="button" class="cbtn hl${hl ? " on" : ""}" data-hl="${key}" aria-pressed="${hl}" title="${hl ? "Remove from My Picks" : "Add to My Picks"}" aria-label="${hl ? "Remove " + esc(c.title) + " from My Picks" : "Add " + esc(c.title) + " to My Picks"}">${hl ? ICON.markOn : ICON.mark}</button><button type="button" class="cbtn ban" data-ban="${key}" title="Banish this car" aria-label="Banish ${esc(c.title)}">${ICON.ban}</button></span>`}
-    <div class="info"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>${rows.length === 1 ? "1 version" : rows.length + " versions"} · 5-year cost from ${money(Math.min(...rows.map((r) => r["5-year cost $"])))}</small></div>
+    <div class="info"><span class="price">${range(prices).replace(/–\$/, "–")}</span><small>${rows.length === 1 ? "1 version" : rows.length + " versions"} · ${infoStat(rows)}</small></div>
   </article>`;
 }
 
