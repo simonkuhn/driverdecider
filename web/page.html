@@ -252,8 +252,23 @@ button { font: inherit; color: inherit; }
 .gen { font: 600 .7rem/1.2 var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--gold-bg); margin-top: 5px; }
 .tag { flex: none; font: italic 400 .72rem/1.28 var(--body); opacity: .88; margin-top: 6px; overflow: hidden; display: -webkit-box;
   -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-wrap: pretty; }
-.billing { margin-top: auto; padding-top: 5px; font: 400 .74rem/1.05 var(--display); letter-spacing: .06em; text-transform: uppercase;
-  opacity: .8; border-top: 1px solid rgb(255 255 255 / .22); width: 100%; }
+.billing { margin-top: auto; padding-top: 7px; width: 100%; border-top: 1px solid rgb(255 255 255 / .22);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 4px; text-transform: uppercase; }
+.billing .st { display: grid; gap: 3px; align-content: start; min-width: 0; }
+.billing small { font: 400 .72rem/1 var(--display); letter-spacing: .08em; opacity: .65; }
+.billing b { font: 400 1rem/1 var(--display); letter-spacing: .04em; font-weight: 400; overflow-wrap: anywhere; }
+.ptext { container-type: inline-size; }
+/* two cards to a row on a phone: a slightly shorter photo leaves the stats room for three lines */
+@media (max-width: 600px) { .poster .shot { height: 42%; } }
+/* narrow cards (two to a row on a phone): one compact line per pair, breaking only between stats */
+@container (max-width: 250px) {
+  .tag { -webkit-line-clamp: 1; }
+  .billing { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; padding-top: 4px; opacity: .85; font: 400 .74rem/1.05 var(--display); }
+  .billing .st { display: inline; white-space: nowrap; }
+  .billing small, .billing b { font: 400 .74rem/1.02 var(--display); letter-spacing: .03em; opacity: 1; }
+  .billing small::after { content: " "; }
+  .billing .st:not(:last-child)::after { content: "\00a0·\00a0"; }
+}
 .pickflag { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--gold-bg); color: #241a00; font: 700 .64rem/1 var(--body);
   letter-spacing: .06em; text-transform: uppercase; padding: 5px 7px; border-radius: 4px; pointer-events: none; }
 .cbtns { position: absolute; z-index: 3; top: 6px; right: 6px; display: flex; gap: 6px; }
@@ -269,7 +284,7 @@ button { font: inherit; color: inherit; }
 .info .price { font: 400 1.4rem/1.05 var(--display); letter-spacing: .03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .info small { font-size: .78rem; color: var(--muted); line-height: 1.3; }
 @media (max-width: 600px) { .ttl.long ~ .tag { display: none; } }
-@media (min-width: 601px) { .ttl { font-size: 4rem; } .ttl.long { font-size: 3rem; } .tag { font-size: .84rem; } .billing { font-size: .9rem; } .brand { font-size: .72rem; } .gen { font-size: .8rem; } }
+@media (min-width: 601px) { .ttl { font-size: 4rem; } .ttl.long { font-size: 3rem; } .tag { font-size: .84rem; }  .brand { font-size: .72rem; } .gen { font-size: .8rem; } }
 .card.hlt { box-shadow: 0 0 0 2px var(--gold-bg), var(--shadow); }
 .card.gone .poster { filter: grayscale(1) brightness(.75); }
 .card.gone .info { opacity: .55; }
@@ -447,6 +462,7 @@ dialog.detail::backdrop { background: rgb(8 10 12 / .62); }
       <select id="sort">
         <option value="cost">Sort by: Lowest 5-year cost</option>
         <option value="price">Sort by: Cheapest</option>
+        <option value="ins">Sort by: Lowest insurance</option>
         <option value="mpg">Sort by: Best MPG</option>
         <option value="safety">Sort by: Safest</option>
         <option value="rel">Sort by: Most reliable</option>
@@ -552,7 +568,9 @@ const nhtsaCls = (s) => {
 const crCls = (v, redAt) => typeof v !== "number" ? "" : v >= 61 ? "green" : v > redAt ? "yellow" : "red";
 const saleLevel = (n) => typeof n !== "number" ? "" : n >= 50 ? "High" : n >= 20 ? "Medium" : "Low";
 const saleCls = (n) => ({ High: "green", Medium: "yellow", Low: "red" }[saleLevel(n)] || "");
-const badge = (text, cls) => `<span class="b ${cls || ""}">${esc(text)}</span>`;
+// levels are stored as High/Med/Low; on screen Med is spelled out (Simon 2026-11-20)
+const lvl = (v) => String(v ?? "").replace(/\bMed\b/g, "Medium");
+const badge = (text, cls) => `<span class="b ${cls || ""}">${esc(lvl(text))}</span>`;
 const RANK = { High: 3, Med: 2, Low: 1 };
 
 // ---- links out ----
@@ -672,6 +690,7 @@ const best = (rows, k, f = Math.min) => f(...rows.map((r) => (typeof r[k] === "n
 const SORTS = {
   price: (r) => best(r, "KBB private party $"),
   cost: (r) => best(r, "5-year cost $"),
+  ins: (r) => best(r, "Annual insurance $"),
   mpg: (r) => -best(r, "Combined MPG", Math.max),
   safety: (r) => -Math.max(...r.map((x) => RANK[x["Safety level (High/Med/Low)"]] || 0)) * 1e6 + best(r, "KBB private party $"),
   rel: (r) => -Math.max(...r.map((x) => RANK[x["Reliability (High/Med/Low)"]] || 0)) * 1e6 + best(r, "KBB private party $"),
@@ -703,7 +722,8 @@ function card(it, mode) {
         <span class="ttl${long}">${esc(c.title)}</span>
         <span class="gen">${esc(years)}</span>
         ${summary ? `<span class="tag">${esc(summary)}</span>` : ""}
-        <span class="billing">${esc(mpg)} MPG · Safety ${esc(safety)} · Reliability ${esc(rel)}${power ? " · Power " + esc(power) : ""}</span>
+        <span class="billing">${[["MPG", mpg], ["Safety", safety], ["Reliability", rel], ...(power ? [["Power", power]] : [])].map(([k, v]) =>
+          `<span class="st"><small>${k}</small><b>${esc(lvl(v)).replace(/\//g, "/<wbr>")}</b></span>`).join("")}</span>
       </span>
     </button>
     ${pick ? '<span class="pickstar" title="Simon\'s pick" aria-label="Simon\'s pick">★</span>' : ""}
@@ -897,7 +917,7 @@ function cmpCell(it, f) {
   const one = (v) => kind === "level" ? badge(v, LEVEL[v]) : kind === "nhtsa" ? badge(v, nhtsaCls(v)) : kind === "iihs" ? badge(v, iihsCls(v)) : esc(v);
   return { html: uniq.map(one).join(kind ? "" : "<br>"), sig: uniq.sort().join("|") };
 }
-const SORT_ROW = { cost: "5-year cost $", price: "KBB private party $", mpg: "Combined MPG", safety: "Safety level (High/Med/Low)",
+const SORT_ROW = { cost: "5-year cost $", price: "KBB private party $", ins: "Annual insurance $", mpg: "Combined MPG", safety: "Safety level (High/Med/Low)",
   rel: "Reliability (High/Med/Low)", sale: "Number for sale (Autotrader)" };
 function compareTable(list) {
   const head = list.map((it) => {
@@ -954,7 +974,7 @@ const ROW_FIELDS = (c, r) => {
   return [
     ["Price", `<span class="big">${money(r["KBB private party $"])}</span> ${a(L.kbb(c, y), '<span class="src">KBB</span>')}`],
     ["5-year cost", money(r["5-year cost $"]) + costBreak(r), costTip(r)],
-    ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet"],
+    ["Insurance", typeof r["Annual insurance $"] === "number" ? money(r["Annual insurance $"]) + ' a year <span class="src">Geico</span>' : "No quote yet", INS_TIP],
     ["Est. miles", num(r["Est. miles"]), milesTip(r)],
     ["MPG", `${r["Combined MPG"]} combined · ${money(r["Annual fuel $"])} a year`],
     ["Safety level", badge(r["Safety level (High/Med/Low)"], LEVEL[r["Safety level (High/Med/Low)"]])],
@@ -988,6 +1008,10 @@ const costTip = (r) => {
     `fuel for 12,000 miles a year at ${prem ? "$6.15 a gallon for premium" : "$5.75 a gallon"} (${money(r["Annual fuel $"])} a year), ` +
     `and repairs (RepairPal) plus oil changes and tire rotations (${money((r["Annual repair cost $"] || 0) + (r["Annual maintenance $"] || 0))} a year) with 30% added for an older car. Insurance is not included.`;
 };
+// the coverage used for every Geico quote (sheet column V, Sources tab)
+const INS_TIP = "Geico online quote for San Francisco, per year (the 6-month price × 2). Coverage: injury liability $50,000 per person and $100,000 per accident; " +
+  "property damage $50,000; medical payments $5,000; uninsured and underinsured motorist $50,000 / $100,000; comprehensive and collision with a $1,000 deductible. " +
+  "Quoted as a financed car driven 12,000 miles a year. Geico prices all trims of a model the same.";
 const milesTip = (r) => { const y = Math.round(r["Est. miles"] / 12000); return `Estimated at 12,000 miles a year: ${y} year${y === 1 ? "" : "s"} old × 12,000 miles = ${num(r["Est. miles"])} miles.`; };
 const vlabel = (r) => r.variant ? `${r.Year} ${r.variant}` : String(r.Year);
 let curVar = {};
